@@ -1,0 +1,2831 @@
+
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Flora Kosmik ASCII — Taman Bunga Galaksi</title>
+
+  <!-- Google Fonts: Poppins untuk antarmuka bersih & JetBrains Mono untuk karakter ASCII tajam -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Poppins', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            void: '#000000',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* Reset kanvas layar penuh tanpa scroll */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #000000;
+      font-family: 'Poppins', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Slider kustom bergaya kosmik */
+    input[type="range"].cosmic-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"].cosmic-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #34d399, #f472b6);
+      border: 2px solid #05060a;
+      box-shadow: 0 0 10px rgba(52, 211, 153, 0.75);
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input[type="range"].cosmic-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.18);
+      box-shadow: 0 0 14px rgba(244, 114, 182, 0.95);
+    }
+
+    input[type="range"].cosmic-slider::-moz-range-thumb {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #34d399, #f472b6);
+      border: 2px solid #05060a;
+      box-shadow: 0 0 10px rgba(52, 211, 153, 0.75);
+      cursor: pointer;
+    }
+
+    /* Scrollbar tipis untuk panel kontrol terpisah */
+    .cosmic-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .cosmic-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .cosmic-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+    }
+    .cosmic-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(52, 211, 153, 0.45);
+    }
+  </style>
+</head>
+<body class="bg-void text-slate-100 antialiased">
+
+  <!-- Kanvas Utama Galaksi & Flora ASCII Ultra-Padat -->
+  <canvas id="floraCanvas"></canvas>
+
+  <!-- Notifikasi Singkat Saat Masuk Mode Bersih (Otomatis Menghilang) -->
+  <div
+    id="cleanHintToast"
+    class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 px-4 py-2 rounded-full bg-[rgba(10,12,18,0.85)] backdrop-blur-md border border-white/15 text-[11px] text-slate-200 shadow-[0_8px_30px_rgba(0,0,0,0.9)] opacity-0 pointer-events-none transition-opacity duration-500 whitespace-nowrap"
+  >
+    Mode Bersih aktif • Ketuk layar 2x atau tekan <span class="font-mono text-emerald-300 font-bold">H</span> untuk menampilkan panel
+  </div>
+
+  <!-- Pojok Kanan Atas: Tombol Melayang Tipis & Elegan (⚙ Panel) -->
+  <div id="floatingTriggerWrap" class="fixed top-4 right-4 z-40 transition-all duration-300">
+    <button
+      id="toggleDrawerBtn"
+      type="button"
+      aria-expanded="false"
+      aria-controls="controlDrawer"
+      class="group flex items-center gap-2 px-3.5 py-2 rounded-full bg-[rgba(10,12,18,0.78)] hover:bg-[rgba(18,22,34,0.92)] backdrop-blur-md border border-white/15 hover:border-emerald-400/50 text-xs font-medium text-slate-100 shadow-[0_8px_28px_rgba(0,0,0,0.85)] transition-all duration-200 active:scale-95 cursor-pointer"
+    >
+      <svg id="gearIcon" class="w-3.5 h-3.5 text-emerald-400 transition-transform duration-500 group-hover:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+      <span>Panel</span>
+    </button>
+  </div>
+
+  <!-- Laci Panel Kontrol Terpisah (Detached Control Drawer) -->
+  <aside
+    id="controlDrawer"
+    class="fixed top-16 right-4 z-30 w-[calc(100vw-2rem)] sm:w-[356px] max-h-[calc(100vh-5rem)] overflow-y-auto cosmic-scroll rounded-3xl bg-[rgba(10,12,18,0.88)] backdrop-blur-xl border border-white/15 shadow-[0_22px_65px_rgba(0,0,0,0.95)] p-4 transition-all duration-300 ease-out opacity-0 translate-x-6 scale-95 pointer-events-none"
+  >
+    <div class="flex flex-col gap-4">
+      <!-- Header Panel -->
+      <div class="flex items-center justify-between pb-2.5 border-b border-white/10">
+        <div>
+          <h2 class="text-xs font-semibold tracking-wider uppercase text-emerald-300">
+            Flora Kosmik ASCII
+          </h2>
+          <p id="charCountInfo" class="text-[11px] font-mono text-slate-400">
+            Memuat taman kosmik...
+          </p>
+        </div>
+        <button
+          id="closeDrawerBtn"
+          type="button"
+          title="Tutup Panel"
+          class="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- 1. Grid Pemilihan 10 Jenis Bunga -->
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-medium uppercase tracking-wider text-slate-300">
+            10 Jenis Bunga
+          </span>
+          <span id="activeFlowerBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-400/25">
+            Mawar
+          </span>
+        </div>
+
+        <div id="flowerGrid" class="grid grid-cols-2 gap-1.5">
+          <!-- 1. Mawar -->
+          <button type="button" data-flower="rose" class="flower-btn flex items-center gap-2 px-2.5 py-2 rounded-2xl border text-[11px] font-medium transition-all duration-200 cursor-pointer">
+            <span class="text-sm leading-none">🌹</span>
+            <span>Mawar</span>
+          </button>
+
+          <!-- 2. Bunga Matahari -->
+          <button type="button" data-flower="sunflower" class="flower-btn flex items-center gap-2 px-2.5 py-2 rounded-2xl border text-[11px] font-medium transition-all duration-200 cursor-pointer">
+            <span class="text-sm leading-none">🌻</span>
+            <span>Matahari</span>
+          </button>
+
+          <!-- 3. Sakura -->
+          <button type="button" data-flower="sakura" class="flower-btn flex items-center gap-2 px-2.5 py-2 rounded-2xl border text-[11px] font-medium transition-all duration-200 cursor-pointer">
+            <span class="text-sm leading-none">🌸</span>
+            <span>Sakura</span>
+          </button>
+
+          <!-- 4. Teratai -->
+          <button type="button" data-flower="lotus" class="flower-btn flex items-center gap-2 px-2.5 py-2 rounded-2xl border text-[11px] font-medium transition-all duration-200 cursor-pointer">
+            <span class="text-sm leading-none">🪷</span>
+            <span>Teratai</span>
+          </button>
+
+          <!-- 5. Tulip -->
+          <button type="button" data-flower="tulip" class="flower-btn flex items-center gap-2 px-2.5 py-2 rounded-2xl border text-[11px] font-medium transition-all duration-200 cursor-pointer">
+            <span class="text-sm leading-none">🌷</span>
+            <span>Tulip</span>
+          </button>
+
+          <!-- 6. Anggrek -->
+          <button type="button" data-flower="orchid" class="flower-btn flex items-center gap-2 px-2.5 py-2 rounded-2xl border text-[11px] font-medium transition-all duration-200 cursor-pointer">
+            <span class="text-sm leading-none">🪻</span>
+            <span>Anggrek</span>
+          </button>
+
+          <!-- 7. Lavender -->
+          <button type="button" data-flower="lavender" class="flower-btn flex items-center gap-2 px-2.5 py-2 rounded-2xl border text-[11px] font-medium transition-all duration-200 cursor-pointer">
+            <span class="text-sm leading-none">🌿</span>
+            <span>Lavender</span>
+          </button>
+
+          <!-- 8. Dahlia -->
+          <button type="button" data-flower="dahlia" class="flower-btn flex items-center gap-2 px-2.5 py-2 rounded-2xl border text-[11px] font-medium transition-all duration-200 cursor-pointer">
+            <span class="text-sm leading-none">🏵️</span>
+            <span>Dahlia</span>
+          </button>
+
+          <!-- 9. Kembang Sepatu -->
+          <button type="button" data-flower="hibiscus" class="flower-btn flex items-center gap-2 px-2.5 py-2 rounded-2xl border text-[11px] font-medium transition-all duration-200 cursor-pointer">
+            <span class="text-sm leading-none">🌺</span>
+            <span>Kembang Sepatu</span>
+          </button>
+
+          <!-- 10. Dandelion -->
+          <button type="button" data-flower="dandelion" class="flower-btn flex items-center gap-2 px-2.5 py-2 rounded-2xl border text-[11px] font-medium transition-all duration-200 cursor-pointer">
+            <span class="text-sm leading-none">🌼</span>
+            <span>Dandelion</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. 6 Palet Warna -->
+      <div class="flex flex-col gap-1.5 pt-2 border-t border-white/10">
+        <label for="paletteSelect" class="text-[11px] font-medium uppercase tracking-wider text-slate-300 flex items-center justify-between">
+          <span>6 Palet Warna</span>
+          <span id="paletteDots" class="inline-flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span class="w-2 h-2 rounded-full bg-amber-300"></span>
+          </span>
+        </label>
+        <select
+          id="paletteSelect"
+          class="w-full rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 focus:border-emerald-400/60 px-3 py-2 text-xs text-slate-100 outline-none transition-colors cursor-pointer"
+        >
+          <option value="alami" class="bg-[#0a0c12]">Alami Kosmik</option>
+          <option value="aurora" class="bg-[#0a0c12]">Aurora Neon</option>
+          <option value="sakura" class="bg-[#0a0c12]">Sakura Senja</option>
+          <option value="gold" class="bg-[#0a0c12]">Emas Galaksi</option>
+          <option value="rainbow" class="bg-[#0a0c12]">Pelangi Kosmik</option>
+          <option value="cyberpunk" class="bg-[#0a0c12]">Cyberpunk</option>
+        </select>
+      </div>
+
+      <!-- 3. Gaya Karakter -->
+      <div class="flex flex-col gap-1.5 pt-2 border-t border-white/10">
+        <label for="charsetSelect" class="text-[11px] font-medium uppercase tracking-wider text-slate-300">
+          Gaya Karakter
+        </label>
+        <select
+          id="charsetSelect"
+          class="w-full rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 focus:border-emerald-400/60 px-3 py-2 text-xs text-slate-100 outline-none transition-colors cursor-pointer"
+        >
+          <option value="botani" class="bg-[#0a0c12]">Botani Klasik (@#%W&amp;*+=~:. )</option>
+          <option value="simbol" class="bg-[#0a0c12]">Simbol Flora (✿❀❁✾✽❃❋*+.)</option>
+          <option value="kode" class="bg-[#0a0c12]">Kode &amp; Biner (01{}&lt;&gt;/\)</option>
+          <option value="custom" class="bg-[#0a0c12]">Teks Kustom...</option>
+        </select>
+
+        <input
+          id="customCharsInput"
+          type="text"
+          maxlength="32"
+          value="FLORA✿KOSMIK"
+          placeholder="Ketik huruf atau kata..."
+          class="hidden mt-1 w-full rounded-xl bg-emerald-950/40 border border-emerald-400/40 focus:border-pink-400 px-3 py-1.5 font-mono text-xs text-emerald-200 placeholder-slate-400 outline-none"
+        />
+      </div>
+
+      <!-- 4. Slider Kepadatan, Kecepatan Angin & Intensitas Mekar/Partikel -->
+      <div class="flex flex-col gap-3 pt-2 border-t border-white/10">
+        <!-- Kepadatan Karakter -->
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="font-medium uppercase tracking-wider text-slate-300">Tingkat Kepadatan</span>
+            <span id="densityLabel" class="font-mono text-emerald-300 font-semibold">Ultra Padat (4.2px)</span>
+          </div>
+          <input
+            id="densitySlider"
+            type="range"
+            min="1"
+            max="4"
+            step="1"
+            value="3"
+            class="cosmic-slider"
+          />
+        </div>
+
+        <!-- Kecepatan Angin & Animasi -->
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="font-medium uppercase tracking-wider text-slate-300">Kecepatan Angin &amp; Animasi</span>
+            <span id="windLabel" class="font-mono text-pink-300 font-semibold">1.0x</span>
+          </div>
+          <input
+            id="windSlider"
+            type="range"
+            min="0.2"
+            max="2.4"
+            step="0.1"
+            value="1.0"
+            class="cosmic-slider"
+          />
+        </div>
+
+        <!-- Intensitas Efek Mekar & Partikel -->
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="font-medium uppercase tracking-wider text-slate-300">Intensitas Mekar &amp; Partikel</span>
+            <span id="bloomIntensityLabel" class="font-mono text-amber-300 font-semibold">1.2x</span>
+          </div>
+          <input
+            id="bloomIntensitySlider"
+            type="range"
+            min="0.5"
+            max="2.0"
+            step="0.1"
+            value="1.2"
+            class="cosmic-slider"
+          />
+        </div>
+      </div>
+
+      <!-- 5. Tombol Pemicu Mekar Ulang, Hembusan & Mode Bersih -->
+      <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
+        <div class="grid grid-cols-2 gap-1.5">
+          <button
+            id="replayBloomBtn"
+            type="button"
+            class="flex items-center justify-center gap-1.5 py-2.5 px-2.5 rounded-2xl bg-gradient-to-r from-pink-500/25 via-rose-500/25 to-amber-500/25 hover:from-pink-500/40 hover:via-rose-500/40 hover:to-amber-500/40 border border-pink-300/40 text-[11px] font-semibold text-pink-100 shadow-[0_4px_20px_rgba(244,114,182,0.18)] transition-all active:scale-95 cursor-pointer"
+          >
+            <span>🌸 Mekar Ulang</span>
+          </button>
+
+          <button
+            id="gustBloomBtn"
+            type="button"
+            class="flex items-center justify-center gap-1.5 py-2.5 px-2.5 rounded-2xl bg-gradient-to-r from-emerald-500/25 via-teal-500/25 to-amber-500/25 hover:from-emerald-500/40 hover:via-teal-500/40 hover:to-amber-500/40 border border-emerald-300/40 text-[11px] font-semibold text-emerald-100 shadow-[0_4px_20px_rgba(52,211,153,0.16)] transition-all active:scale-95 cursor-pointer"
+          >
+            <span>✨ Hembusan</span>
+          </button>
+        </div>
+
+        <button
+          id="cleanModeBtn"
+          type="button"
+          class="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-xs font-medium text-slate-200 transition-all active:scale-95 cursor-pointer"
+        >
+          <svg class="w-4 h-4 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+          </svg>
+          <span>Mode Bersih</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <script>
+    /**
+     * ============================================================================
+     * FLORA KOSMIK ASCII — MESIN BOTANI MULTI-ZONA & ANIMASI BERLAPIS (60 FPS)
+     * ============================================================================
+     * Arsitektur:
+     * 1. Latar belakang galaksi hitam pekat (#000000) dengan 600+ partikel bintang
+     *    mikro (0.4px - 1.8px) berkelap-kelip dalam 3 lapisan paralaks, nebula redup,
+     *    serta bintang jatuh berkala.
+     * 2. Offscreen High-Resolution Botanical Buffer dengan Multi-Zona Anatomi:
+     *    - Channel R (0..255): Luminance 3D & bayangan oklusi kedalaman kelopak
+     *    - Channel G (partId): Zona anatomi (25=bayangan/riak air, 55=batang/duri,
+     *      90=daun berurat, 130=kelopak luar, 165=kelopak dalam, 205=urat kelopak
+     *      berkilau, 235=labellum/buluh, 252=benang sari emas/kepala sari/embun)
+     *    - Channel B (radialPos 0..255): Koordinat rambatan bioluminesensi dari
+     *      pangkal batang -> inti bunga -> menyusuri urat kelopak hingga ke ujung.
+     * 3. Kepadatan Ultra-Tinggi (7.000 - 11.000+ karakter mikro tajam Retina/HiDPI)
+     *    dengan color-bucketing untuk performa 60 FPS yang stabil.
+     */
+
+    (function () {
+      'use strict';
+
+      // --- Referensi Elemen DOM ---
+      const canvas = document.getElementById('floraCanvas');
+      const ctx = canvas.getContext('2d', { alpha: false });
+
+      const offCanvas = document.createElement('canvas');
+      const offCtx = offCanvas.getContext('2d', { willReadFrequently: true });
+
+      const floatingTriggerWrap = document.getElementById('floatingTriggerWrap');
+      const toggleDrawerBtn = document.getElementById('toggleDrawerBtn');
+      const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+      const controlDrawer = document.getElementById('controlDrawer');
+      const gearIcon = document.getElementById('gearIcon');
+      const cleanHintToast = document.getElementById('cleanHintToast');
+
+      const flowerBtns = document.querySelectorAll('.flower-btn');
+      const activeFlowerBadge = document.getElementById('activeFlowerBadge');
+      const charCountInfo = document.getElementById('charCountInfo');
+
+      const paletteSelect = document.getElementById('paletteSelect');
+      const paletteDots = document.getElementById('paletteDots');
+      const charsetSelect = document.getElementById('charsetSelect');
+      const customCharsInput = document.getElementById('customCharsInput');
+      const densitySlider = document.getElementById('densitySlider');
+      const densityLabel = document.getElementById('densityLabel');
+      const windSlider = document.getElementById('windSlider');
+      const windLabel = document.getElementById('windLabel');
+      const bloomIntensitySlider = document.getElementById('bloomIntensitySlider');
+      const bloomIntensityLabel = document.getElementById('bloomIntensityLabel');
+      const replayBloomBtn = document.getElementById('replayBloomBtn');
+      const gustBloomBtn = document.getElementById('gustBloomBtn');
+      const cleanModeBtn = document.getElementById('cleanModeBtn');
+
+      // --- Nama Spesies, Level Kepadatan & Set Karakter ASCII ---
+      const FLOWER_NAMES = {
+        rose: 'Mawar',
+        sunflower: 'Matahari',
+        sakura: 'Sakura',
+        lotus: 'Teratai',
+        tulip: 'Tulip',
+        orchid: 'Anggrek',
+        lavender: 'Lavender',
+        dahlia: 'Dahlia',
+        hibiscus: 'Kembang Sepatu',
+        dandelion: 'Dandelion',
+      };
+
+      const DENSITY_LEVELS = {
+        1: { label: 'Padat (5.8px)', spacing: 5.8, fontScale: 1.15 },
+        2: { label: 'Sangat Padat (4.9px)', spacing: 4.9, fontScale: 1.16 },
+        3: { label: 'Ultra Padat (4.2px)', spacing: 4.2, fontScale: 1.18 },
+        4: { label: 'Ekstrem (3.6px)', spacing: 3.6, fontScale: 1.2 },
+      };
+
+      const CHARSETS = {
+        botani: ' .:-=+*#%@&W$',
+        simbol: ' .+*❋❃✽✾❁❀✿',
+        kode: ' .:/\\<>01{}#%',
+      };
+
+      function getResponsiveMetrics() {
+        const minDim = Math.min(state.width, state.height);
+        const flowerScale = Math.max(0.68, Math.min(1.55, (minDim * 0.72) / 410));
+        const preset = DENSITY_LEVELS[state.densityLevel] || DENSITY_LEVELS[3];
+        const spacing = preset.spacing * (minDim < 480 ? 0.94 : 1.0);
+        const fontSize = Math.max(4.5, spacing * preset.fontScale);
+        return { flowerScale, spacing, fontSize };
+      }
+
+      function pickCharacter(lum, partId, col, row) {
+        if (state.charsetMode === 'custom') {
+          const clean = (state.customChars || '').trim();
+          if (clean.length > 0) {
+            const idx = Math.abs((col * 7 + row * 13 + Math.floor(lum * 11)) % clean.length);
+            return clean[idx];
+          }
+        }
+        const chars = CHARSETS[state.charsetMode] || CHARSETS.botani;
+        const clamped = Math.max(0.08, Math.min(1, lum));
+        const idx = Math.min(chars.length - 1, Math.floor(clamped * (chars.length - 1)));
+        return chars[idx];
+      }
+
+      // --- 6 Palet Warna Kosmik Cerah & Kontras Tinggi (Lightness >= 38% - 92%) ---
+      function quantizeHsl(h, s, l) {
+        const qH = ((Math.round(h / 4) * 4) % 360 + 360) % 360;
+        const qS = Math.max(72, Math.min(98, Math.round(s / 4) * 4));
+        const qL = Math.max(38, Math.min(92, Math.round(l / 3) * 3));
+        return `hsl(${qH},${qS}%,${qL}%)`;
+      }
+
+      const SPECIES_BASE_HUES = {
+        rose: { outer: 344, inner: 354, vein: 12, center: 46 },
+        sunflower: { outer: 42, inner: 48, vein: 54, center: 28 },
+        sakura: { outer: 334, inner: 342, vein: 350, center: 46 },
+        lotus: { outer: 326, inner: 338, vein: 352, center: 48 },
+        tulip: { outer: 356, inner: 14, vein: 34, center: 48 },
+        orchid: { outer: 292, inner: 314, vein: 336, center: 46 },
+        lavender: { outer: 266, inner: 278, vein: 292, center: 48 },
+        dahlia: { outer: 16, inner: 346, vein: 36, center: 50 },
+        hibiscus: { outer: 350, inner: 8, vein: 38, center: 52 },
+        dandelion: { outer: 48, inner: 54, vein: 60, center: 42 },
+      };
+
+      const PALETTES = {
+        alami: {
+          dots: ['#fb7185', '#34d399', '#fcd34d'],
+          sample(lum, radialPos, partId, time, flower) {
+            const spec = SPECIES_BASE_HUES[flower] || SPECIES_BASE_HUES.rose;
+            if (partId >= 245) {
+              // Benang sari emas & titik embun bercahaya
+              return quantizeHsl(spec.center + Math.sin(time * 2.5) * 6, 96, 62 + lum * 28);
+            }
+            if (partId >= 225) {
+              // Bibir anggrek / putik eksotis
+              return quantizeHsl(spec.vein, 94, 56 + lum * 28);
+            }
+            if (partId >= 195) {
+              // Urat kelopak berkilau & tepi cahaya
+              return quantizeHsl(spec.vein, 92, 58 + lum * 30);
+            }
+            if (partId >= 150) {
+              // Kelopak dalam
+              return quantizeHsl(spec.inner + radialPos * 10, 90, 48 + lum * 32);
+            }
+            if (partId >= 115) {
+              // Kelopak luar
+              return quantizeHsl(spec.outer + radialPos * 8, 88, 42 + lum * 32);
+            }
+            if (partId >= 75) {
+              // Daun hijau zamrud berurat
+              return quantizeHsl(146 + radialPos * 14, 82, 40 + lum * 30);
+            }
+            if (partId >= 40) {
+              // Batang & ranting
+              return quantizeHsl(flower === 'sakura' ? 28 : 134, 76, 38 + lum * 26);
+            }
+            // Riak air kosmik / bayangan dasar (tetap terlihat jelas)
+            return quantizeHsl(196 + radialPos * 16, 84, 42 + lum * 26);
+          },
+        },
+        aurora: {
+          dots: ['#34d399', '#38bdf8', '#c084fc'],
+          sample(lum, radialPos, partId, time) {
+            if (partId >= 245) return quantizeHsl(54, 98, 66 + lum * 24);
+            if (partId < 110) return quantizeHsl(158 + radialPos * 25, 88, 42 + lum * 28);
+            const h = 152 + radialPos * 135 + Math.sin(time * 0.9) * 18;
+            return quantizeHsl(h, 94, 46 + lum * 36);
+          },
+        },
+        sakura: {
+          dots: ['#f472b6', '#fda4af', '#fde68a'],
+          sample(lum, radialPos, partId) {
+            if (partId >= 245) return quantizeHsl(46, 98, 68 + lum * 22);
+            if (partId < 110) return quantizeHsl(318 + radialPos * 18, 76, 40 + lum * 26);
+            const h = 330 + radialPos * 24;
+            return quantizeHsl(h, 92, 50 + lum * 36);
+          },
+        },
+        gold: {
+          dots: ['#fbbf24', '#f59e0b', '#fef08a'],
+          sample(lum, radialPos, partId) {
+            if (partId >= 245) return quantizeHsl(56, 98, 72 + lum * 20);
+            if (partId < 110) return quantizeHsl(34 + radialPos * 12, 84, 40 + lum * 26);
+            const h = 38 + radialPos * 18;
+            return quantizeHsl(h, 95, 46 + lum * 38);
+          },
+        },
+        rainbow: {
+          dots: ['#f43f5e', '#34d399', '#60a5fa'],
+          sample(lum, radialPos, partId, time) {
+            if (partId >= 245) return quantizeHsl(55, 98, 72 + lum * 20);
+            const h = radialPos * 320 + time * 42 + (partId * 0.45);
+            return quantizeHsl(h, 94, 48 + lum * 34);
+          },
+        },
+        cyberpunk: {
+          dots: ['#f43f5e', '#22d3ee', '#e879f9'],
+          sample(lum, radialPos, partId) {
+            if (partId >= 245) return quantizeHsl(56, 98, 70 + lum * 22);
+            if (partId < 110) return quantizeHsl(188 + radialPos * 16, 92, 42 + lum * 28);
+            const h = radialPos > 0.52 ? 186 + radialPos * 20 : 322 + radialPos * 25;
+            return quantizeHsl(h, 96, 48 + lum * 36);
+          },
+        },
+      };
+
+      // --- Partikel Galaksi Latar Belakang, Bintang Jatuh, Serbuk Sari & Efek ---
+      const STAR_COLORS = [
+        '255,255,255',
+        '224,242,254',
+        '254,243,199',
+        '209,250,229',
+        '252,231,243',
+      ];
+
+      const stars = [];
+      const foregroundSpores = [];
+      const shootingStars = [];
+      const pollenParticles = [];
+      const windAsciiTrail = [];
+      const burstSparks = [];
+      const shockwaves = [];
+      let nebulaBackdrop = null;
+
+      function buildNebulaBackdrop() {
+        const bg = document.createElement('canvas');
+        bg.width = Math.max(1, state.width);
+        bg.height = Math.max(1, state.height);
+        const bctx = bg.getContext('2d');
+
+        bctx.fillStyle = '#000000';
+        bctx.fillRect(0, 0, bg.width, bg.height);
+
+        const g1 = bctx.createRadialGradient(
+          bg.width * 0.5,
+          bg.height * 0.5,
+          10,
+          bg.width * 0.5,
+          bg.height * 0.5,
+          Math.max(bg.width, bg.height) * 0.55
+        );
+        g1.addColorStop(0, 'rgba(16, 185, 129, 0.045)');
+        g1.addColorStop(0.5, 'rgba(236, 72, 153, 0.025)');
+        g1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        bctx.fillStyle = g1;
+        bctx.fillRect(0, 0, bg.width, bg.height);
+
+        nebulaBackdrop = bg;
+      }
+
+      function spawnShootingStar() {
+        const startX = Math.random() * state.width * 0.85;
+        const startY = Math.random() * state.height * 0.35;
+        const angle = 0.42 + Math.random() * 0.35;
+        const speed = 420 + Math.random() * 280;
+        shootingStars.push({
+          x: startX,
+          y: startY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          len: 55 + Math.random() * 55,
+          life: 0,
+          maxLife: 0.65 + Math.random() * 0.35,
+        });
+      }
+
+      function initGalaxy() {
+        buildNebulaBackdrop();
+
+        stars.length = 0;
+        const starCount = Math.min(720, Math.max(460, Math.floor((state.width * state.height) / 2400)));
+        for (let i = 0; i < starCount; i++) {
+          const isBright = Math.random() < 0.14;
+          stars.push({
+            x: Math.random() * state.width,
+            y: Math.random() * state.height,
+            size: isBright ? 1.1 + Math.random() * 0.7 : 0.45 + Math.random() * 0.75,
+            baseAlpha: isBright ? 0.65 + Math.random() * 0.35 : 0.25 + Math.random() * 0.55,
+            twinkleSpeed: 1.2 + Math.random() * 3.2,
+            twinklePhase: Math.random() * Math.PI * 2,
+            layer: i % 3,
+            color: STAR_COLORS[i % STAR_COLORS.length],
+            crossSparkle: isBright && Math.random() < 0.45,
+          });
+        }
+
+        foregroundSpores.length = 0;
+        for (let i = 0; i < 26; i++) {
+          foregroundSpores.push({
+            x: Math.random() * state.width,
+            y: Math.random() * state.height,
+            size: 0.7 + Math.random() * 1.1,
+            alpha: 0.18 + Math.random() * 0.26,
+            phase: Math.random() * Math.PI * 2,
+          });
+        }
+
+        if (pollenParticles.length === 0) {
+          for (let i = 0; i < 55; i++) {
+            pollenParticles.push({
+              x: state.width * 0.5 + (Math.random() - 0.5) * 260,
+              y: state.height * (0.18 + Math.random() * 0.65),
+              vy: -(12 + Math.random() * 22),
+              phase: Math.random() * Math.PI * 2,
+              size: 0.9 + Math.random() * 1.5,
+              alpha: 0.35 + Math.random() * 0.6,
+            });
+          }
+        }
+      }
+
+      // --- State Aplikasi ---
+      const state = {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        dpr: Math.min(window.devicePixelRatio || 1, 2),
+        flower: 'rose',
+        palette: 'alami',
+        charsetMode: 'botani',
+        customChars: 'FLORA✿KOSMIK',
+        densityLevel: 3, // Default: Ultra Padat (7.000 - 11.000+ karakter)
+        windSpeed: 1.0,
+        bloomIntensity: 1.2,
+        drawerOpen: false,
+        cleanMode: false,
+        time: 0,
+        lastFrameTime: performance.now(),
+        lastRenderedChars: 0,
+        // State Animasi Mekar Multi-Tahap saat berganti bentuk / Mekar Ulang
+        bloomActive: false,
+        bloomProgress: 1.0,
+        bloomHasContractPhase: false,
+        pendingFlower: null,
+        flowerSwapped: true,
+        pollenBurstAccumulator: 0,
+      };
+
+      // --- Fungsi Easing Botani untuk Transisi Kuncup -> Mekar Elastis ---
+      function clamp01(v) {
+        return v < 0 ? 0 : v > 1 ? 1 : v;
+      }
+
+      function smoothstep(edge0, edge1, x) {
+        const t = clamp01((x - edge0) / (edge1 - edge0));
+        return t * t * (3 - 2 * t);
+      }
+
+      function easeOutCubic(t) {
+        const x = clamp01(t);
+        return 1 - Math.pow(1 - x, 3);
+      }
+
+      function easeOutBack(t, overshoot = 1.32) {
+        const x = clamp01(t);
+        const c1 = overshoot;
+        const c3 = c1 + 1;
+        return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+      }
+
+      function getBloomStages() {
+        if (!state.bloomActive) {
+          return {
+            active: false,
+            contract: 0,
+            stem: 1,
+            leaf: 1,
+            bud: 1,
+            unfurl: 1,
+            unfurlRaw: 1,
+            bioSweep: -1,
+          };
+        }
+
+        const p = state.bloomProgress;
+        if (state.bloomHasContractPhase) {
+          // Tahap 0 (0.00 - 0.16): Bunga lama menyatu ke inti benih kosmik
+          const contract = p < 0.16 ? smoothstep(0.0, 0.16, p) : 0;
+          // Tahap 1 (0.15 - 0.46): Pertumbuhan batang dari pangkal ke atas
+          const stem = easeOutCubic(clamp01((p - 0.15) / 0.31));
+          // Tahap 1b (0.28 - 0.58): Daun membuka keluar secara bertahap
+          const leaf = easeOutBack(clamp01((p - 0.28) / 0.30), 1.15);
+          // Tahap 2a (0.34 - 0.52): Kuncup terbentuk di pucuk batang
+          const bud = easeOutCubic(clamp01((p - 0.34) / 0.18));
+          // Tahap 2b (0.42 - 1.00): Kelopak mekar berlapis dari kuncup ke mekar penuh
+          const unfurlRaw = clamp01((p - 0.42) / 0.58);
+          const unfurl = easeOutBack(unfurlRaw, 1.28);
+          // Tahap 3 (0.18 - 1.00): Gelombang bioluminesensi merambat dari pangkal ke ujung kelopak
+          const bioSweep = clamp01((p - 0.18) / 0.82);
+
+          return { active: true, contract, stem, leaf, bud, unfurl, unfurlRaw, bioSweep };
+        } else {
+          // Mode "Mekar Ulang" langsung dari kuncup & pertumbuhan batang bunga aktif
+          const stem = easeOutCubic(clamp01(p / 0.34));
+          const leaf = easeOutBack(clamp01((p - 0.16) / 0.34), 1.15);
+          const bud = easeOutCubic(clamp01((p - 0.22) / 0.20));
+          const unfurlRaw = clamp01((p - 0.32) / 0.68);
+          const unfurl = easeOutBack(unfurlRaw, 1.28);
+          const bioSweep = clamp01((p - 0.05) / 0.95);
+
+          return { active: true, contract: 0, stem, leaf, bud, unfurl, unfurlRaw, bioSweep };
+        }
+      }
+
+      function startBloomTransition(targetFlower, withContract = true) {
+        state.pendingFlower = targetFlower;
+        state.bloomActive = true;
+        state.bloomProgress = 0;
+        state.bloomHasContractPhase = withContract;
+        state.flowerSwapped = !withContract;
+        state.pollenBurstAccumulator = 0;
+
+        if (!withContract) {
+          state.flower = targetFlower;
+        }
+
+        // Hembusan angin lembut & riak kosmik saat proses mekar dimulai
+        breeze.bloomSurge = 0.85;
+        breeze.gustImpulse += (Math.random() > 0.5 ? 1 : -1) * 0.22;
+
+        shockwaves.push({
+          x: state.width * 0.5,
+          y: state.height * 0.52,
+          radius: 10,
+          maxRadius: Math.min(state.width, state.height) * 0.38,
+          alpha: 0.72,
+        });
+      }
+
+      // ============================================================================
+      // STATE ANGIN BERLAPIS, PERSPEKTIF 3D & PUSARAN KLIK
+      // ============================================================================
+      const pointer = {
+        x: state.width * 0.5,
+        y: state.height * 0.5,
+        prevX: state.width * 0.5,
+        prevY: state.height * 0.5,
+        vx: 0,
+        vy: 0,
+        normX: 0,
+        normY: 0,
+        smoothTiltX: 0,
+        smoothTiltY: 0,
+        active: false,
+        lastMoveTime: -10,
+      };
+
+      const breeze = {
+        stemBend: 0,
+        leafBend: 0,
+        headBend: 0,
+        gustImpulse: 0,
+        bloomSurge: 0, // Lonjakan mekar saat tombol/klik dipicu
+      };
+
+      const displacedCells = new Map();
+
+      function triggerCosmicVortex(vx, vy, surgeBloom = false) {
+        const { spacing } = getResponsiveMetrics();
+
+        shockwaves.push({
+          x: vx,
+          y: vy,
+          radius: 14,
+          maxRadius: Math.min(state.width, state.height) * 0.48,
+          alpha: 0.88,
+        });
+
+        const dirFromCenter = vx < state.width * 0.5 ? 1 : -1;
+        breeze.gustImpulse += dirFromCenter * 0.48;
+        if (surgeBloom) {
+          breeze.bloomSurge = 1.0;
+        }
+
+        // Semburan percikan botani & bintang
+        const sparkTotal = Math.round(36 * state.bloomIntensity);
+        for (let i = 0; i < sparkTotal; i++) {
+          const ang = (Math.PI * 2 * i) / sparkTotal + (Math.random() - 0.5) * 0.25;
+          const spd = 110 + Math.random() * 280;
+          burstSparks.push({
+            x: vx,
+            y: vy,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd,
+            life: 0,
+            maxLife: 0.5 + Math.random() * 0.45,
+            size: 1.0 + Math.random() * 1.5,
+            color: STAR_COLORS[i % STAR_COLORS.length],
+          });
+        }
+
+        // Tambahkan semburan serbuk sari naik
+        for (let i = 0; i < 16; i++) {
+          pollenParticles.push({
+            x: state.width * 0.5 + (Math.random() - 0.5) * 140,
+            y: state.height * 0.45 + (Math.random() - 0.5) * 80,
+            vy: -(24 + Math.random() * 32),
+            phase: Math.random() * Math.PI * 2,
+            size: 1.2 + Math.random() * 1.5,
+            alpha: 0.85,
+          });
+          if (pollenParticles.length > 110) pollenParticles.shift();
+        }
+
+        const radius = Math.min(state.width, state.height) * 0.42;
+        const minCol = Math.floor((vx - radius) / spacing);
+        const maxCol = Math.ceil((vx + radius) / spacing);
+        const minRow = Math.floor((vy - radius) / spacing);
+        const maxRow = Math.ceil((vy + radius) / spacing);
+
+        for (let row = minRow; row <= maxRow; row++) {
+          for (let col = minCol; col <= maxCol; col++) {
+            const wx = col * spacing + spacing * 0.5;
+            const wy = row * spacing + spacing * 0.5;
+            const dx = wx - vx;
+            const dy = wy - vy;
+            const dist = Math.hypot(dx, dy);
+
+            if (dist < radius) {
+              const falloff = 1 - dist / radius;
+              const radialForce = (260 + Math.random() * 180) * Math.pow(falloff, 1.15);
+              const swirlForce = 220 * Math.pow(falloff, 1.1);
+              const ang = dist > 1 ? Math.atan2(dy, dx) : Math.random() * Math.PI * 2;
+              const tangent = ang + Math.PI * 0.5;
+
+              const key = `${col},${row}`;
+              const existing = displacedCells.get(key) || { dx: 0, dy: 0, vx: 0, vy: 0, heat: 0 };
+              existing.vx += Math.cos(ang) * radialForce + Math.cos(tangent) * swirlForce;
+              existing.vy += Math.sin(ang) * radialForce + Math.sin(tangent) * swirlForce;
+              existing.heat = Math.min(1, existing.heat + falloff * 1.4);
+              displacedCells.set(key, existing);
+            }
+          }
+        }
+      }
+
+      // ============================================================================
+      // PERANGKAT GAMBAR ANATOMI BOTANI MULTI-ZONA (OFFSCREEN BUFFER)
+      // ============================================================================
+      function botColor(lum, partId, radialPos = 128) {
+        const r = Math.max(0, Math.min(255, Math.round(lum * 255)));
+        const g = Math.max(0, Math.min(255, Math.round(partId)));
+        const b = Math.max(0, Math.min(255, Math.round(radialPos)));
+        return `rgb(${r},${g},${b})`;
+      }
+
+      function evalStemPoint(t, baseX, baseY, topX, topY, bendOffset) {
+        const inv = 1 - t;
+        const ctrlX = baseX + bendOffset * 0.34;
+        const ctrlY = baseY + (topY - baseY) * 0.52;
+        const endX = topX + bendOffset;
+        const endY = topY + Math.abs(bendOffset) * 0.14;
+        return {
+          x: inv * inv * baseX + 2 * inv * t * ctrlX + t * t * endX,
+          y: inv * inv * baseY + 2 * inv * t * ctrlY + t * t * endY,
+        };
+      }
+
+      function drawCurvedStem(c, baseX, baseY, topX, topY, bendOffset, baseWidth, tipWidth, partId = 55, growth = 1.0) {
+        const g = clamp01(growth);
+        if (g <= 0.005) {
+          return { x: baseX, y: baseY };
+        }
+        const steps = Math.max(4, Math.round(32 * g));
+        for (let i = 0; i <= steps; i++) {
+          const t = (i / steps) * g;
+          const pt = evalStemPoint(t, baseX, baseY, topX, topY, bendOffset);
+          const r = (baseWidth * (1 - t) + tipWidth * t) * (0.45 + 0.55 * Math.min(1, g * 2.2));
+          const fiberShade = 0.72 + 0.18 * Math.sin(t * 32);
+          // radialPos 0..90 pada batang agar gelombang bioluminesensi mengalir dari pangkal batang
+          c.fillStyle = botColor(fiberShade, partId, Math.round(t * 90));
+          c.beginPath();
+          c.arc(pt.x, pt.y, r, 0, Math.PI * 2);
+          c.fill();
+        }
+        return evalStemPoint(g, baseX, baseY, topX, topY, bendOffset);
+      }
+
+      function drawVeinedLeaf(c, x, y, angle, length, width, serrated = false, partId = 90, growth = 1.0) {
+        const g = Math.max(0, growth);
+        if (g <= 0.02) return;
+
+        c.save();
+        c.translate(x, y);
+        // Daun membuka dari posisi kuncup merapat ke batang menuju sudut terbuka
+        const foldOffset = (1 - Math.min(1, g)) * (Math.cos(angle) >= 0 ? -0.55 : 0.55);
+        c.rotate(angle + foldOffset);
+        c.scale(g, 0.35 + 0.65 * Math.min(1, g));
+
+        const grad = c.createLinearGradient(0, 0, length, 0);
+        grad.addColorStop(0, botColor(0.56, partId, 55));
+        grad.addColorStop(0.55, botColor(0.84, partId, 110));
+        grad.addColorStop(1, botColor(0.96, partId, 165));
+
+        c.fillStyle = grad;
+        c.strokeStyle = botColor(0.98, partId, 175);
+        c.lineWidth = 2.0;
+
+        c.beginPath();
+        c.moveTo(0, 0);
+
+        if (!serrated) {
+          c.bezierCurveTo(length * 0.28, -width, length * 0.72, -width * 0.75, length, 0);
+          c.bezierCurveTo(length * 0.72, width * 0.75, length * 0.28, width, 0, 0);
+        } else {
+          const teeth = 7;
+          for (let i = 1; i <= teeth; i++) {
+            const u = i / (teeth + 1);
+            const env = Math.sin(u * Math.PI) * width;
+            c.lineTo(u * length, -env * 1.14);
+            c.lineTo((u + 0.035) * length, -env * 0.85);
+          }
+          c.lineTo(length, 0);
+          for (let i = teeth; i >= 1; i--) {
+            const u = i / (teeth + 1);
+            const env = Math.sin(u * Math.PI) * width;
+            c.lineTo((u + 0.035) * length, env * 0.85);
+            c.lineTo(u * length, env * 1.14);
+          }
+          c.closePath();
+        }
+
+        c.fill();
+        c.stroke();
+
+        // Tulang daun tengah & urat lateral berkilau
+        c.strokeStyle = botColor(1.0, 205, 160);
+        c.lineWidth = 2.1;
+        c.beginPath();
+        c.moveTo(2, 0);
+        c.lineTo(length * 0.92, 0);
+        c.stroke();
+
+        c.lineWidth = 1.4;
+        for (let v = 0.2; v <= 0.76; v += 0.14) {
+          const vx = v * length;
+          const vy = Math.sin(v * Math.PI) * width * 0.66;
+          c.beginPath();
+          c.moveTo(vx, 0);
+          c.lineTo(vx + length * 0.11, -vy);
+          c.moveTo(vx, 0);
+          c.lineTo(vx + length * 0.11, vy);
+          c.stroke();
+        }
+
+        c.restore();
+      }
+
+      // ==========================================================================
+      // 1. MAWAR (ROSE) — Kelopak Beludru Berlapis Spiral, Bayangan & Kilau Embun
+      // ==========================================================================
+      function drawRose(c, time, br, bloomFactor, stages) {
+        const stemPx = br.stemBend * 66 * stages.stem;
+        const head = drawCurvedStem(c, -8, 196, 6, -40, stemPx, 7.4, 5.2, 55, stages.stem);
+
+        // Duri mawar halus di batang (muncul sesuai tinggi batang)
+        const thornSpecs = [
+          { t: 0.24, side: 1 },
+          { t: 0.46, side: -1 },
+          { t: 0.7, side: 1 },
+        ];
+        c.fillStyle = botColor(0.95, 205, 80);
+        for (const th of thornSpecs) {
+          if (stages.stem < th.t) continue;
+          const thScale = clamp01((stages.stem - th.t) / 0.12);
+          const pt = evalStemPoint(th.t, -8, 196, 6, -40, stemPx);
+          c.beginPath();
+          c.moveTo(pt.x, pt.y - 5 * thScale);
+          c.lineTo(pt.x + th.side * 15 * thScale, pt.y - 2 * thScale);
+          c.lineTo(pt.x, pt.y + 4 * thScale);
+          c.closePath();
+          c.fill();
+        }
+
+        // Daun bergerigi membuka bertahap setelah batang melewati titik tumbuh daun
+        if (stages.stem > 0.32) {
+          const l1Grow = clamp01((stages.leaf - 0.05) / 0.75);
+          const leaf1 = evalStemPoint(0.35, -8, 196, 6, -40, stemPx);
+          drawVeinedLeaf(c, leaf1.x, leaf1.y, -2.55 + br.leafBend * 0.3, 88, 33, true, 90, l1Grow);
+        }
+
+        if (stages.stem > 0.52) {
+          const l2Grow = clamp01((stages.leaf - 0.2) / 0.8);
+          const leaf2 = evalStemPoint(0.57, -8, 196, 6, -40, stemPx);
+          drawVeinedLeaf(c, leaf2.x, leaf2.y, -0.45 + br.leafBend * 0.3, 94, 35, true, 90, l2Grow);
+        }
+
+        if (stages.bud <= 0.02) return;
+
+        c.save();
+        c.translate(head.x, head.y);
+        c.rotate(br.headBend * 0.38 * stages.unfurl);
+        c.scale(0.32 + 0.68 * stages.bud, 0.38 + 0.62 * stages.bud);
+
+        // Sepal hijau di dasar kuntum (membuka ke bawah saat kuncup mekar)
+        const sepalOpen = 0.25 + 0.75 * clamp01(stages.unfurl);
+        c.fillStyle = botColor(0.84, 90, 115);
+        for (const sAng of [-2.35, -0.85, 0.85, 2.35]) {
+          c.beginPath();
+          c.moveTo(0, 12);
+          c.quadraticCurveTo(
+            Math.cos(sAng) * 52 * sepalOpen,
+            26 * sepalOpen + Math.sin(sAng) * 24,
+            Math.cos(sAng) * 72 * sepalOpen,
+            44 * sepalOpen - (1 - sepalOpen) * 28
+          );
+          c.quadraticCurveTo(Math.cos(sAng) * 34 * sepalOpen, 34 * sepalOpen, 0, 20);
+          c.closePath();
+          c.fill();
+        }
+
+        // 5 Lapisan Kelopak Beludru Spiral Fibonacci: mekar berurutan dari lapisan luar ke dalam!
+        const layers = [
+          { count: 7, rDist: 46 * bloomFactor, pW: 46, pH: 40, part: 130, rotOffset: 0.15 },
+          { count: 6, rDist: 34 * bloomFactor, pW: 38, pH: 34, part: 165, rotOffset: 0.68 },
+          { count: 6, rDist: 23 * bloomFactor, pW: 30, pH: 28, part: 165, rotOffset: 1.25 },
+          { count: 5, rDist: 13 * bloomFactor, pW: 21, pH: 21, part: 205, rotOffset: 1.82 },
+          { count: 4, rDist: 6 * bloomFactor, pW: 13, pH: 13, part: 205, rotOffset: 2.4 },
+        ];
+
+        for (let lIdx = 0; lIdx < layers.length; lIdx++) {
+          const lay = layers[lIdx];
+          // Lapisan luar (lIdx=0) mekar lebih dulu, diikuti lapisan dalam secara berurutan
+          const layerDelay = lIdx * 0.11;
+          const layerOpen = easeOutBack(clamp01((stages.unfurlRaw - layerDelay) / (1 - layerDelay * 0.7)), 1.25);
+          const curDist = lay.rDist * (0.14 + 0.86 * layerOpen);
+          const curW = lay.pW * (0.48 + 0.52 * layerOpen);
+          const curH = lay.pH * (0.65 + 0.35 * layerOpen);
+          const spiralTwist = (1 - layerOpen) * 0.85;
+
+          for (let i = 0; i < lay.count; i++) {
+            const ang =
+              (Math.PI * 2 * i) / lay.count +
+              lay.rotOffset +
+              spiralTwist +
+              Math.sin(time * 1.1 + lIdx * 0.7) * 0.06;
+            c.save();
+            c.rotate(ang);
+            c.translate(0, -curDist);
+
+            const pGrad = c.createRadialGradient(0, 10, 3, 0, -curH * 0.42, curW * 1.18);
+            pGrad.addColorStop(0, botColor(0.32 + lIdx * 0.05, lay.part, 95 + lIdx * 32));
+            pGrad.addColorStop(0.68, botColor(0.84, lay.part, 150 + lIdx * 24));
+            pGrad.addColorStop(1, botColor(1.0, 205, 245));
+
+            c.fillStyle = pGrad;
+            c.strokeStyle = botColor(1.0, 205, 250);
+            c.lineWidth = 2.2;
+
+            c.beginPath();
+            c.moveTo(0, 14);
+            c.bezierCurveTo(-curW * 1.16, 6, -curW * 0.96, -curH * 0.96, 0, -curH * 0.86);
+            c.bezierCurveTo(curW * 0.96, -curH * 0.96, curW * 1.16, 6, 0, 14);
+            c.closePath();
+            c.fill();
+            c.stroke();
+
+            c.strokeStyle = botColor(0.92, 205, 210);
+            c.lineWidth = 1.2;
+            c.beginPath();
+            c.moveTo(0, 6);
+            c.lineTo(0, -curH * 0.72);
+            c.stroke();
+
+            c.restore();
+          }
+        }
+
+        // Inti spiral tengah & butiran embun berkilau muncul saat mekar penuh
+        c.fillStyle = botColor(1.0, 252, 110);
+        c.beginPath();
+        c.arc(0, 0, 6.5 * Math.min(1, stages.bud * 1.2), 0, Math.PI * 2);
+        c.fill();
+
+        if (stages.unfurlRaw > 0.65) {
+          const dewAlpha = clamp01((stages.unfurlRaw - 0.65) / 0.35);
+          const dewDrops = [
+            { x: -34 * bloomFactor, y: -22 * bloomFactor },
+            { x: 38 * bloomFactor, y: -14 * bloomFactor },
+            { x: -18 * bloomFactor, y: 34 * bloomFactor },
+          ];
+          for (let d = 0; d < dewDrops.length; d++) {
+            const glint = (0.78 + 0.22 * Math.sin(time * 3.5 + d * 2.1)) * dewAlpha;
+            c.fillStyle = botColor(glint, 252, 235);
+            c.beginPath();
+            c.arc(dewDrops[d].x, dewDrops[d].y, 2.6 * dewAlpha, 0, Math.PI * 2);
+            c.fill();
+          }
+        }
+
+        c.restore();
+      }
+
+      // ==========================================================================
+      // 2. BUNGA MATAHARI (SUNFLOWER) — 2 Lapis Kelopak & Cakram Biji Spiral Berdenyut
+      // ==========================================================================
+      function drawSunflower(c, time, br, bloomFactor, stages) {
+        const stemPx = br.stemBend * 60 * stages.stem;
+        const head = drawCurvedStem(c, 0, 200, 0, -46, stemPx, 9.8, 7.4, 55, stages.stem);
+
+        if (stages.stem > 0.3) {
+          const l1 = evalStemPoint(0.32, 0, 200, 0, -46, stemPx);
+          drawVeinedLeaf(c, l1.x, l1.y, -2.5 + br.leafBend * 0.28, 100, 45, true, 90, clamp01(stages.leaf * 1.1));
+        }
+
+        if (stages.stem > 0.5) {
+          const l2 = evalStemPoint(0.55, 0, 200, 0, -46, stemPx);
+          drawVeinedLeaf(c, l2.x, l2.y, -0.52 + br.leafBend * 0.28, 104, 47, true, 90, clamp01((stages.leaf - 0.15) * 1.15));
+        }
+
+        if (stages.bud <= 0.02) return;
+
+        c.save();
+        c.translate(head.x, head.y);
+        c.rotate(br.headBend * 0.34 * stages.unfurl);
+
+        const open = clamp01(stages.unfurl);
+        const discRadius = 45 * (0.34 + 0.66 * stages.bud);
+
+        // Dua lapisan 26 kelopak emas memekar radial dari kuncup
+        const petalCount = 26;
+        for (let ring = 0; ring < 2; ring++) {
+          const isFront = ring === 1;
+          const ringOpen = easeOutBack(clamp01((stages.unfurlRaw - ring * 0.12) / 0.88), 1.25);
+          const pLen = (isFront ? 94 : 99) * (0.94 + (bloomFactor - 1) * 0.45) * (0.12 + 0.88 * ringOpen);
+          const pWid = (isFront ? 13 : 14) * (0.35 + 0.65 * ringOpen);
+          const partId = isFront ? 165 : 130;
+          const rStart = discRadius * 0.8;
+
+          for (let i = 0; i < petalCount; i++) {
+            const ang =
+              (Math.PI * 2 * i) / petalCount +
+              ring * (Math.PI / petalCount) +
+              (1 - ringOpen) * 0.45 +
+              Math.sin(time * 2.4 + i * 0.65) * 0.035;
+            c.save();
+            c.rotate(ang);
+
+            const pGrad = c.createLinearGradient(rStart, 0, rStart + pLen, 0);
+            pGrad.addColorStop(0, botColor(0.58, partId, 135));
+            pGrad.addColorStop(0.62, botColor(0.9, partId, 195));
+            pGrad.addColorStop(1, botColor(1.0, 205, 250));
+
+            c.fillStyle = pGrad;
+            c.beginPath();
+            c.moveTo(rStart, 0);
+            c.quadraticCurveTo(rStart + pLen * 0.48, -pWid, rStart + pLen, 0);
+            c.quadraticCurveTo(rStart + pLen * 0.48, pWid, rStart, 0);
+            c.closePath();
+            c.fill();
+
+            c.strokeStyle = botColor(0.98, 205, 225);
+            c.lineWidth = 1.3;
+            c.beginPath();
+            c.moveTo(rStart + 4, 0);
+            c.lineTo(rStart + pLen * 0.88, 0);
+            c.stroke();
+
+            c.restore();
+          }
+        }
+
+        // Cakram Biji Gelap
+        c.fillStyle = botColor(0.36, 55, 95);
+        c.beginPath();
+        c.arc(0, 0, discRadius, 0, Math.PI * 2);
+        c.fill();
+
+        // 210 Biji Spiral Fibonacci yang muncul dan mengembang seiring mekarnya bunga
+        const goldenAngle = 2.39996323;
+        const seedTotal = Math.max(24, Math.round(210 * (0.25 + 0.75 * open)));
+        for (let n = 0; n < seedTotal; n++) {
+          const frac = n / 210;
+          const r = (discRadius - 4) * Math.sqrt(frac);
+          const theta = n * goldenAngle + time * 0.18 + (1 - open) * 1.4;
+          const sx = Math.cos(theta) * r;
+          const sy = Math.sin(theta) * r;
+          const pulse = 0.5 + 0.5 * Math.sin(frac * 10 - time * 3.8);
+          const seedLum = 0.52 + 0.48 * Math.max(frac, pulse);
+          const seedPart = frac > 0.65 || pulse > 0.72 ? 252 : 205;
+          c.fillStyle = botColor(seedLum, seedPart, Math.round(95 + frac * 40));
+          c.beginPath();
+          c.arc(sx, sy, (1.9 + frac * 1.1) * (0.6 + 0.4 * open), 0, Math.PI * 2);
+          c.fill();
+        }
+
+        c.restore();
+      }
+
+      // ==========================================================================
+      // 3. SAKURA (CHERRY BLOSSOM) — Ranting Artistik, 5 Kuntum Mekar Berurutan
+      // ==========================================================================
+      function drawSingleSakuraBlossom(c, x, y, scale, rot, time, bloomFactor, openAmount = 1.0) {
+        const op = Math.max(0, openAmount);
+        if (op <= 0.02) return;
+
+        c.save();
+        c.translate(x, y);
+        c.rotate(rot + (1 - Math.min(1, op)) * 0.5);
+        c.scale(scale * bloomFactor * (0.18 + 0.82 * op), scale * bloomFactor * (0.18 + 0.82 * op));
+
+        // 5 Kelopak Sakura dengan Lekukan V Khas di Tiap Ujung
+        for (let i = 0; i < 5; i++) {
+          const ang = (Math.PI * 2 * i) / 5 + Math.sin(time * 2.0 + i) * 0.045;
+          c.save();
+          c.rotate(ang);
+
+          const pGrad = c.createLinearGradient(0, 0, 0, -48);
+          pGrad.addColorStop(0, botColor(0.58, 130, 120));
+          pGrad.addColorStop(0.65, botColor(0.9, 165, 185));
+          pGrad.addColorStop(1, botColor(1.0, 205, 245));
+
+          c.fillStyle = pGrad;
+          c.strokeStyle = botColor(1.0, 205, 250);
+          c.lineWidth = 1.8;
+
+          c.beginPath();
+          c.moveTo(0, -4);
+          c.bezierCurveTo(-22, -16, -24, -42, -7, -48);
+          c.lineTo(0, -40);
+          c.lineTo(7, -48);
+          c.bezierCurveTo(24, -42, 22, -16, 0, -4);
+          c.closePath();
+          c.fill();
+          c.stroke();
+
+          c.strokeStyle = botColor(0.94, 205, 210);
+          c.lineWidth = 1.1;
+          c.beginPath();
+          c.moveTo(0, -8);
+          c.lineTo(0, -36);
+          c.stroke();
+
+          c.restore();
+        }
+
+        // Mahkota 14 Benang Sari Merah Muda & Kepala Sari Emas (partId = 252)
+        c.strokeStyle = botColor(0.92, 165, 140);
+        c.lineWidth = 1.5;
+        for (let s = 0; s < 14; s++) {
+          const sa = (Math.PI * 2 * s) / 14 + Math.sin(time * 2.5 + s) * 0.05;
+          const sl = (14 + (s % 2) * 4.5) * Math.min(1, op);
+          c.beginPath();
+          c.moveTo(0, 0);
+          c.lineTo(Math.cos(sa) * sl, Math.sin(sa) * sl);
+          c.stroke();
+
+          c.fillStyle = botColor(1.0, 252, 130);
+          c.beginPath();
+          c.arc(Math.cos(sa) * sl, Math.sin(sa) * sl, 2.3, 0, Math.PI * 2);
+          c.fill();
+        }
+
+        c.restore();
+      }
+
+      function drawSakura(c, time, br, bloomFactor, stages) {
+        const swayX = br.stemBend * 38 * stages.stem;
+        const gStem = stages.stem;
+
+        const branchPts = [
+          { x: -135, y: 185 },
+          { x: -75 + swayX * 0.25, y: 110 },
+          { x: -12 + swayX * 0.55, y: 32 },
+          { x: 48 + swayX * 0.85, y: -55 },
+          { x: 118 + swayX, y: -132 },
+        ];
+
+        const totalSegs = branchPts.length - 1;
+        for (let seg = 0; seg < totalSegs; seg++) {
+          const segStart = seg / totalSegs;
+          if (gStem <= segStart) break;
+          const segFrac = clamp01((gStem - segStart) * totalSegs);
+          const p0 = branchPts[seg];
+          const p1 = branchPts[seg + 1];
+          const steps = Math.max(3, Math.round(16 * segFrac));
+          for (let i = 0; i <= steps; i++) {
+            const t = (i / steps) * segFrac;
+            const bx = p0.x + (p1.x - p0.x) * t;
+            const by = p0.y + (p1.y - p0.y) * t;
+            const r = (9.5 - seg * 1.6) * (1 - t * 0.18);
+            c.fillStyle = botColor(0.75, 55, Math.round((seg * 16 + i) * 1.2));
+            c.beginPath();
+            c.arc(bx, by, r, 0, Math.PI * 2);
+            c.fill();
+          }
+        }
+
+        if (gStem > 0.42) {
+          drawCurvedStem(c, -28 + swayX * 0.45, 50, -108 + swayX * 0.8, -28, swayX * 0.2, 5.5, 3.0, 55, clamp01((gStem - 0.42) / 0.45));
+        }
+        if (gStem > 0.62) {
+          drawCurvedStem(c, 22 + swayX * 0.7, -22, 112 + swayX * 0.95, 18, swayX * 0.2, 5.0, 2.8, 55, clamp01((gStem - 0.62) / 0.38));
+        }
+
+        // Kuncup sakura di ujung ranting
+        if (stages.bud > 0.3) {
+          const budS = clamp01((stages.bud - 0.3) / 0.7);
+          c.fillStyle = botColor(0.95, 165, 220);
+          c.beginPath();
+          c.ellipse(124 + swayX, -138, 10 * budS, 6 * budS, -0.7, 0, Math.PI * 2);
+          c.ellipse(-114 + swayX * 0.8, -32, 9 * budS, 5.5 * budS, -2.5, 0, Math.PI * 2);
+          c.fill();
+        }
+
+        // 5 Kuntum Bunga Sakura Mekar Berurutan (staggered bloom)
+        const b1 = easeOutBack(clamp01((stages.unfurlRaw - 0.0) / 0.65), 1.3);
+        const b2 = easeOutBack(clamp01((stages.unfurlRaw - 0.1) / 0.65), 1.3);
+        const b3 = easeOutBack(clamp01((stages.unfurlRaw - 0.2) / 0.65), 1.3);
+        const b4 = easeOutBack(clamp01((stages.unfurlRaw - 0.28) / 0.65), 1.3);
+        const b5 = easeOutBack(clamp01((stages.unfurlRaw - 0.36) / 0.64), 1.3);
+
+        drawSingleSakuraBlossom(c, -18 + swayX * 0.55, 68, 0.82, -0.15 + br.headBend * 0.18, time + 3.0, bloomFactor, b1);
+        drawSingleSakuraBlossom(c, -56 + swayX * 0.65, -8, 0.94, -0.35 + br.headBend * 0.18, time + 1.1, bloomFactor, b2);
+        drawSingleSakuraBlossom(c, 48 + swayX * 0.85, -62, 1.05, 0.2 + br.headBend * 0.18, time, bloomFactor, b3);
+        drawSingleSakuraBlossom(c, 78 + swayX * 0.9, 10, 0.86, 0.55 + br.headBend * 0.18, time + 2.2, bloomFactor, b4);
+        drawSingleSakuraBlossom(c, 92 + swayX * 0.96, -106, 0.78, 0.4 + br.headBend * 0.18, time + 4.1, bloomFactor, b5);
+
+        // Kelopak Sakura Gugur Melayang (muncul setelah bunga mulai mekar)
+        if (stages.unfurlRaw > 0.35) {
+          const petalAlpha = clamp01((stages.unfurlRaw - 0.35) / 0.65);
+          const fallingCount = Math.round(18 * state.bloomIntensity * petalAlpha);
+          for (let p = 0; p < fallingCount; p++) {
+            const cycle = (time * 0.25 + p * 0.17) % 1;
+            const px = -125 + ((p * 53) % 250) + Math.sin(time * 2.1 + p * 1.7) * 30 + br.headBend * 52 * cycle;
+            const py = -168 + cycle * 360;
+            const pRot = time * 2.8 + p * 1.3;
+            const flip = 0.45 + 0.55 * Math.abs(Math.cos(time * 3.1 + p));
+
+            c.save();
+            c.translate(px, py);
+            c.rotate(pRot);
+            c.fillStyle = botColor(0.96 * petalAlpha, 205, 240);
+            c.beginPath();
+            c.ellipse(0, 0, 7.8, 4.8 * flip, 0, 0, Math.PI * 2);
+            c.fill();
+            c.restore();
+          }
+        }
+      }
+
+      // ==========================================================================
+      // 4. TERATAI (LOTUS) — Kelopak Berlapis Mekar dari Kuncup Tegak & Riak Air
+      // ==========================================================================
+      function drawLotus(c, time, br, bloomFactor, stages) {
+        const swayX = br.headBend * 24 * stages.unfurl;
+
+        // Riak air kosmik konsentris berdenyut keluar
+        c.lineWidth = 2.6;
+        for (let rIdx = 0; rIdx < 4; rIdx++) {
+          const pulse = (time * 0.38 + rIdx * 0.25) % 1;
+          const rx = (68 + pulse * 98) * (0.4 + 0.6 * stages.stem);
+          const ry = (16 + pulse * 24) * (0.4 + 0.6 * stages.stem);
+          const lum = 0.95 * (1 - pulse * 0.65) * stages.stem;
+          c.strokeStyle = botColor(lum, 25, Math.round(pulse * 90));
+          c.beginPath();
+          c.ellipse(0, 118, rx, ry, 0, 0, Math.PI * 2);
+          c.stroke();
+        }
+
+        // Daun teratai lebar (lily pad) mengembang di permukaan air
+        const padGrow = Math.max(0.1, stages.leaf);
+        c.fillStyle = botColor(0.76, 90, 80);
+        c.beginPath();
+        c.moveTo(0, 112);
+        c.ellipse(0, 112, 130 * padGrow, 31 * padGrow, 0, 0.18, Math.PI * 2 - 0.18);
+        c.closePath();
+        c.fill();
+
+        if (stages.bud <= 0.02) return;
+
+        const cx = swayX;
+        const cy = 62 + (1 - stages.bud) * 32;
+        // Saat kuncup (unfurl=0), sudut kelopak menguncup vertikal mendekati 0; saat mekar (unfurl=1), membuka lebar!
+        const spread = 0.14 + 0.86 * stages.unfurl;
+
+        function drawLotusPetal(angle, len, wid, partId, radPos, scaleM = 1) {
+          c.save();
+          c.translate(cx, cy);
+          c.rotate(angle * spread);
+
+          const pLen = len * (0.42 + 0.58 * stages.bud) * scaleM;
+          const pWid = wid * (0.55 + 0.45 * clamp01(stages.unfurl)) * scaleM;
+
+          const pGrad = c.createLinearGradient(0, 0, 0, -pLen);
+          pGrad.addColorStop(0, botColor(0.52, partId, 110));
+          pGrad.addColorStop(0.65, botColor(0.88, partId, radPos));
+          pGrad.addColorStop(1, botColor(1.0, 205, 250));
+
+          c.fillStyle = pGrad;
+          c.strokeStyle = botColor(1.0, 205, 255);
+          c.lineWidth = 2.0;
+
+          c.beginPath();
+          c.moveTo(0, 0);
+          c.bezierCurveTo(-pWid, -pLen * 0.38, -pWid * 0.85, -pLen * 0.78, 0, -pLen);
+          c.bezierCurveTo(pWid * 0.85, -pLen * 0.78, pWid, -pLen * 0.38, 0, 0);
+          c.closePath();
+          c.fill();
+          c.stroke();
+
+          c.strokeStyle = botColor(0.98, 205, 235);
+          c.lineWidth = 1.5;
+          c.beginPath();
+          c.moveTo(0, -6);
+          c.lineTo(0, -pLen * 0.92);
+          c.stroke();
+
+          c.restore();
+        }
+
+        // 3 Lapisan Kelopak Teratai Simetris
+        for (const a of [-1.24, -0.8, -0.38, 0.38, 0.8, 1.24]) {
+          drawLotusPetal(a * bloomFactor, 120, 28, 130, 175);
+        }
+        for (const a of [-0.64, -0.31, 0, 0.31, 0.64]) {
+          drawLotusPetal(a * bloomFactor, 128, 26, 165, 210);
+        }
+
+        // Mahkota Benang Sari Emas di Tengah (terlihat saat kelopak mulai membuka)
+        if (stages.unfurlRaw > 0.25) {
+          const stGrow = clamp01((stages.unfurlRaw - 0.25) / 0.75);
+          for (let s = -7; s <= 7; s++) {
+            const sa = s * 0.075 * stGrow;
+            const sx = cx + Math.sin(sa) * 58 * stGrow;
+            const sy = cy - Math.cos(sa) * 68 * stGrow;
+            c.strokeStyle = botColor(0.95 * stGrow, 252, 120);
+            c.lineWidth = 1.8;
+            c.beginPath();
+            c.moveTo(cx, cy - 15 * stGrow);
+            c.lineTo(sx, sy);
+            c.stroke();
+
+            c.fillStyle = botColor(1.0 * stGrow, 252, 140);
+            c.beginPath();
+            c.arc(sx, sy, 2.8 * stGrow, 0, Math.PI * 2);
+            c.fill();
+          }
+        }
+
+        for (const a of [-0.22, 0, 0.22]) {
+          drawLotusPetal(a * bloomFactor, 110, 22, 205, 240);
+        }
+      }
+
+      // ==========================================================================
+      // 5. TULIP — 3 Kelopak Luar & 3 Kelopak Dalam Merekah dari Kuncup Ramping
+      // ==========================================================================
+      function drawTulip(c, time, br, bloomFactor, stages) {
+        const stemPx = br.stemBend * 64 * stages.stem;
+        const head = drawCurvedStem(c, 0, 200, 0, -30, stemPx, 7.8, 6.2, 55, stages.stem);
+
+        // Daun panjang menjuntai melengkung tumbuh dari pangkal
+        const lGrow = Math.max(0, stages.leaf);
+        if (lGrow > 0.02) {
+          for (const side of [-1, 1]) {
+            const lSway = br.leafBend * 48 * lGrow;
+            c.save();
+            c.translate(side * 6, 198);
+            c.scale(lGrow, lGrow);
+            c.translate(-side * 6, -198);
+
+            c.fillStyle = botColor(side === -1 ? 0.74 : 0.88, side === -1 ? 25 : 90, 90);
+            c.strokeStyle = botColor(0.98, 205, 140);
+            c.lineWidth = 2.0;
+
+            c.beginPath();
+            c.moveTo(side * 4, 198);
+            c.bezierCurveTo(side * 76 + lSway, 110, side * 98 + lSway, 10, side * 48 + lSway * 1.2, -56);
+            c.bezierCurveTo(side * 46 + lSway, 25, side * 34 + lSway * 0.5, 115, side * 8, 198);
+            c.closePath();
+            c.fill();
+            c.stroke();
+            c.restore();
+          }
+        }
+
+        if (stages.bud <= 0.02) return;
+
+        c.save();
+        c.translate(head.x, head.y);
+        c.rotate(br.headBend * 0.38 * stages.unfurl);
+        // Kuncup tulip ramping di awal, lalu merekah penuh
+        const cupW = 0.45 + 0.55 * stages.unfurl;
+        const cupH = 0.38 + 0.62 * stages.bud;
+        c.scale(cupW, cupH);
+
+        // 3 Kelopak Luar
+        c.fillStyle = botColor(0.68, 130, 145);
+        c.beginPath();
+        c.moveTo(0, 10);
+        c.bezierCurveTo(-36, -15, -30, -84, 0, -118);
+        c.bezierCurveTo(30, -84, 36, -15, 0, 10);
+        c.closePath();
+        c.fill();
+
+        const sideSpread = 0.2 + 0.8 * clamp01(stages.unfurl);
+        for (const side of [-1, 1]) {
+          c.save();
+          c.rotate(side * 0.23 * bloomFactor * sideSpread);
+
+          const gSide = c.createLinearGradient(0, 12, side * 20, -110);
+          gSide.addColorStop(0, botColor(0.54, 130, 115));
+          gSide.addColorStop(0.65, botColor(0.86, 130, 185));
+          gSide.addColorStop(1, botColor(1.0, 205, 245));
+
+          c.fillStyle = gSide;
+          c.strokeStyle = botColor(1.0, 205, 250);
+          c.lineWidth = 2.2;
+
+          c.beginPath();
+          c.moveTo(0, 12);
+          c.bezierCurveTo(side * 60, 4, side * 56, -74, side * 16, -110);
+          c.bezierCurveTo(side * 2, -82, -side * 6, -34, 0, 12);
+          c.closePath();
+          c.fill();
+          c.stroke();
+          c.restore();
+        }
+
+        // 3 Kelopak Dalam Utama
+        for (const innerSide of [-0.12, 0.12]) {
+          c.save();
+          c.rotate(innerSide * bloomFactor * sideSpread);
+          c.fillStyle = botColor(0.82, 165, 195);
+          c.beginPath();
+          c.moveTo(0, 12);
+          c.bezierCurveTo(-34, -4, -30, -78, 0, -112);
+          c.bezierCurveTo(30, -78, 34, -4, 0, 12);
+          c.closePath();
+          c.fill();
+          c.restore();
+        }
+
+        const gMid = c.createLinearGradient(0, 14, 0, -116);
+        gMid.addColorStop(0, botColor(0.6, 165, 120));
+        gMid.addColorStop(0.6, botColor(0.92, 165, 200));
+        gMid.addColorStop(1, botColor(1.0, 205, 255));
+
+        c.fillStyle = gMid;
+        c.strokeStyle = botColor(1.0, 205, 255);
+        c.lineWidth = 2.4;
+
+        c.beginPath();
+        c.moveTo(0, 14);
+        c.bezierCurveTo(-44, 2, -38, -78, 0, -116);
+        c.bezierCurveTo(38, -78, 44, 2, 0, 14);
+        c.closePath();
+        c.fill();
+        c.stroke();
+
+        c.strokeStyle = botColor(0.96, 205, 230);
+        c.lineWidth = 1.4;
+        for (const vx of [-14, 0, 14]) {
+          c.beginPath();
+          c.moveTo(vx * 0.4, 4);
+          c.quadraticCurveTo(vx * 1.15, -52, vx * 0.5, -104);
+          c.stroke();
+        }
+
+        c.restore();
+      }
+
+      // ==========================================================================
+      // 6. ANGGREK (ORCHID) — 3 Bunga Mekar Berurutan dari Bawah ke Atas
+      // ==========================================================================
+      function drawSingleOrchidFlower(c, x, y, scale, rot, bloomFactor, openAmount = 1.0) {
+        const op = Math.max(0, openAmount);
+        if (op <= 0.02) return;
+
+        c.save();
+        c.translate(x, y);
+        c.rotate(rot);
+        c.scale(scale * bloomFactor * (0.22 + 0.78 * op), scale * bloomFactor * (0.22 + 0.78 * op));
+
+        const wingSpread = 0.25 + 0.75 * clamp01(op);
+
+        // 3 Sepal runcing
+        for (const sa of [0, 2.35 * wingSpread, -2.35 * wingSpread]) {
+          c.save();
+          c.rotate(sa);
+          c.fillStyle = botColor(0.8, 130, 165);
+          c.beginPath();
+          c.moveTo(0, 0);
+          c.bezierCurveTo(-15, -22, -12, -52, 0, -64);
+          c.bezierCurveTo(12, -52, 15, -22, 0, 0);
+          c.closePath();
+          c.fill();
+          c.restore();
+        }
+
+        // 2 Kelopak sayap lateral lebar berurat
+        for (const side of [-1, 1]) {
+          c.save();
+          c.rotate(side * 1.28 * wingSpread);
+          const wGrad = c.createLinearGradient(0, 0, 0, -58);
+          wGrad.addColorStop(0, botColor(0.65, 165, 130));
+          wGrad.addColorStop(0.7, botColor(0.92, 165, 205));
+          wGrad.addColorStop(1, botColor(1.0, 205, 248));
+
+          c.fillStyle = wGrad;
+          c.strokeStyle = botColor(1.0, 205, 250);
+          c.lineWidth = 2.0;
+          c.beginPath();
+          c.moveTo(0, 0);
+          c.bezierCurveTo(-28, -14, -30, -48, 0, -58);
+          c.bezierCurveTo(30, -48, 28, -14, 0, 0);
+          c.closePath();
+          c.fill();
+          c.stroke();
+
+          c.strokeStyle = botColor(0.94, 205, 220);
+          c.lineWidth = 1.2;
+          c.beginPath();
+          c.moveTo(0, -6);
+          c.lineTo(0, -48);
+          c.stroke();
+
+          c.restore();
+        }
+
+        // Bibir bunga (labellum) berlekuk dengan corak bintik eksotis di tengah
+        c.fillStyle = botColor(0.95, 235, 230);
+        c.beginPath();
+        c.moveTo(0, 0);
+        c.bezierCurveTo(-23, 6, -25, 28, -8, 35);
+        c.lineTo(0, 45);
+        c.lineTo(8, 35);
+        c.bezierCurveTo(25, 28, 23, 6, 0, 0);
+        c.closePath();
+        c.fill();
+
+        c.fillStyle = botColor(1.0, 252, 145);
+        const spots = [
+          { x: 0, y: 2, r: 6.2 },
+          { x: -8, y: 16, r: 2.2 },
+          { x: 8, y: 16, r: 2.2 },
+          { x: -5, y: 26, r: 2.0 },
+          { x: 5, y: 26, r: 2.0 },
+        ];
+        for (const sp of spots) {
+          c.beginPath();
+          c.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2);
+          c.fill();
+        }
+
+        c.restore();
+      }
+
+      function drawOrchid(c, time, br, bloomFactor, stages) {
+        const stemPx = br.stemBend * 52 * stages.stem;
+
+        drawVeinedLeaf(c, -65, 188, -2.65 + br.leafBend * 0.2, 96, 25, false, 90, stages.leaf);
+        drawVeinedLeaf(c, -55, 192, -0.35 + br.leafBend * 0.2, 104, 26, false, 90, clamp01((stages.leaf - 0.1) * 1.12));
+
+        const tip = drawCurvedStem(c, -62, 195, 78, -125, stemPx + 24 * stages.stem, 6.5, 3.6, 55, stages.stem);
+
+        // 2 Kuncup bunga di pucuk tangkai
+        if (stages.stem > 0.78) {
+          const bS = clamp01((stages.stem - 0.78) / 0.22);
+          c.fillStyle = botColor(0.92, 165, 220);
+          c.beginPath();
+          c.ellipse(tip.x + 14 * bS, tip.y - 10 * bS, 12 * bS, 8 * bS, -0.4, 0, Math.PI * 2);
+          c.fill();
+
+          const budPt = evalStemPoint(0.84, -62, 195, 78, -125, stemPx + 24);
+          c.beginPath();
+          c.ellipse(budPt.x + 16 * bS, budPt.y - 6 * bS, 14 * bS, 9.5 * bS, -0.2, 0, Math.PI * 2);
+          c.fill();
+        }
+
+        // 3 Kuntum Bunga Anggrek Mekar Berurutan dari Bawah ke Atas
+        const o1 = easeOutBack(clamp01((stages.unfurlRaw - 0.0) / 0.65), 1.3);
+        const o2 = easeOutBack(clamp01((stages.unfurlRaw - 0.18) / 0.65), 1.3);
+        const o3 = easeOutBack(clamp01((stages.unfurlRaw - 0.34) / 0.66), 1.3);
+
+        const f1 = evalStemPoint(0.36, -62, 195, 78, -125, stemPx + 24);
+        drawSingleOrchidFlower(c, f1.x - 10, f1.y, 1.04, -0.15 + br.headBend * 0.24, bloomFactor, o1);
+
+        const f2 = evalStemPoint(0.56, -62, 195, 78, -125, stemPx + 24);
+        drawSingleOrchidFlower(c, f2.x + 14, f2.y - 4, 0.94, 0.22 + br.headBend * 0.24, bloomFactor, o2);
+
+        const f3 = evalStemPoint(0.72, -62, 195, 78, -125, stemPx + 24);
+        drawSingleOrchidFlower(c, f3.x - 6, f3.y - 8, 0.82, -0.25 + br.headBend * 0.24, bloomFactor, o3);
+      }
+
+      // ==========================================================================
+      // 7. LAVENDER — 5 Tangkai Ramping Bertingkat & Partikel Aroma Ungu Naik
+      // ==========================================================================
+      function drawLavender(c, time, br, bloomFactor, stages) {
+        for (let i = -4; i <= 4; i++) {
+          const ang = -Math.PI * 0.5 + i * 0.22 * stages.leaf + br.leafBend * 0.18;
+          drawVeinedLeaf(c, i * 6, 195, ang, 76 + (4 - Math.abs(i)) * 8, 9, false, 90, stages.leaf);
+        }
+
+        const stalks = [
+          { bx: -24, tx: -76, ty: -102, bMult: 0.88, scale: 0.82 },
+          { bx: 24, tx: 78, ty: -96, bMult: 0.9, scale: 0.8 },
+          { bx: -12, tx: -36, ty: -136, bMult: 0.96, scale: 0.92 },
+          { bx: 12, tx: 40, ty: -130, bMult: 0.98, scale: 0.9 },
+          { bx: 0, tx: 0, ty: -164, bMult: 1.06, scale: 1.02 },
+        ];
+
+        for (let sIdx = 0; sIdx < stalks.length; sIdx++) {
+          const st = stalks[sIdx];
+          const bendPx = br.stemBend * 68 * st.bMult * stages.stem;
+          drawCurvedStem(c, st.bx, 195, st.tx, st.ty, bendPx, 4.2, 2.6, 55, stages.stem);
+
+          const tiers = 11;
+          for (let k = 0; k < tiers; k++) {
+            const frac = k / (tiers - 1);
+            const tPos = 0.4 + frac * 0.6;
+            // Setiap tingkat kuntum lavender mekar bertahap dari bawah ke pucuk
+            const tierOpen = easeOutBack(clamp01((stages.unfurlRaw - frac * 0.35) / 0.65), 1.25);
+            if (tierOpen <= 0.03) continue;
+
+            const pt = evalStemPoint(tPos, st.bx, 195, st.tx, st.ty, bendPx);
+            const tierSpread = (1 - frac * 0.6) * 20 * st.scale * bloomFactor * tierOpen;
+
+            for (let b = -2; b <= 2; b++) {
+              const bx = pt.x + b * tierSpread * 0.48 + Math.sin(time * 2.6 + k + b + sIdx) * 1.5;
+              const by = pt.y + Math.abs(b) * 3.2;
+              const rad = (7.0 - frac * 2.5) * st.scale * (0.35 + 0.65 * tierOpen);
+              const partId = frac > 0.72 ? 205 : (k + Math.abs(b)) % 2 === 0 ? 165 : 130;
+
+              c.fillStyle = botColor(0.76 + frac * 0.22, partId, Math.round(115 + frac * 135));
+              c.beginPath();
+              c.ellipse(bx, by, rad, rad * 1.25, b * 0.25, 0, Math.PI * 2);
+              c.fill();
+            }
+          }
+        }
+
+        // Partikel aroma ungu bercahaya menguap naik ke atas
+        const scentFade = clamp01(stages.unfurlRaw * 1.3);
+        const scentCount = Math.round(14 * state.bloomIntensity * scentFade);
+        for (let a = 0; a < scentCount; a++) {
+          const cycle = (time * 0.32 + a * 0.14) % 1;
+          const ax = -55 + ((a * 37) % 110) + Math.sin(time * 2.2 + a) * 16 + br.headBend * 35 * cycle;
+          const ay = -85 - cycle * 125;
+          c.fillStyle = botColor(0.95 * (1 - cycle * 0.5) * scentFade, 252, 235);
+          c.beginPath();
+          c.arc(ax, ay, 2.4 * (1 - cycle * 0.4), 0, Math.PI * 2);
+          c.fill();
+        }
+      }
+
+      // ==========================================================================
+      // 8. DAHLIA — Mandala Geometris 6 Lingkaran Konsentris Mengembang Bergelombang
+      // ==========================================================================
+      function drawDahlia(c, time, br, bloomFactor, stages) {
+        const stemPx = br.stemBend * 52 * stages.stem;
+        const head = drawCurvedStem(c, 0, 200, 0, -24, stemPx, 8.4, 6.2, 55, stages.stem);
+
+        if (stages.stem > 0.26) {
+          const l1 = evalStemPoint(0.28, 0, 200, 0, -24, stemPx);
+          drawVeinedLeaf(c, l1.x, l1.y, -2.55 + br.leafBend * 0.24, 86, 31, true, 90, clamp01(stages.leaf * 1.1));
+        }
+
+        if (stages.stem > 0.4) {
+          const l2 = evalStemPoint(0.42, 0, 200, 0, -24, stemPx);
+          drawVeinedLeaf(c, l2.x, l2.y, -0.55 + br.leafBend * 0.24, 88, 32, true, 90, clamp01((stages.leaf - 0.12) * 1.12));
+        }
+
+        if (stages.bud <= 0.02) return;
+
+        c.save();
+        c.translate(head.x, head.y);
+        c.rotate(br.headBend * 0.28 * stages.unfurl);
+
+        // 6 Lingkaran Konsentris = 78 Kelopak mengembang berurutan dari luar ke dalam
+        const rings = [
+          { count: 22, len: 120 * bloomFactor, wid: 16.5, part: 130, rot: 0 },
+          { count: 18, len: 102 * bloomFactor, wid: 15, part: 165, rot: 0.14 },
+          { count: 14, len: 84 * bloomFactor, wid: 13.5, part: 130, rot: 0.28 },
+          { count: 10, len: 66 * bloomFactor, wid: 12, part: 165, rot: 0.42 },
+          { count: 8, len: 48 * bloomFactor, wid: 10.5, part: 205, rot: 0.56 },
+          { count: 6, len: 30 * bloomFactor, wid: 9, part: 205, rot: 0.7 },
+        ];
+
+        for (let rIdx = 0; rIdx < rings.length; rIdx++) {
+          const rg = rings[rIdx];
+          const ringDelay = rIdx * 0.08;
+          const ringOpen = easeOutBack(clamp01((stages.unfurlRaw - ringDelay) / (1 - ringDelay * 0.6)), 1.32);
+          const curLen = rg.len * (0.24 + 0.76 * ringOpen) * (0.5 + 0.5 * stages.bud);
+          const curWid = rg.wid * (0.55 + 0.45 * ringOpen);
+          const swirl = (1 - ringOpen) * 0.5;
+
+          for (let i = 0; i < rg.count; i++) {
+            const ang = (Math.PI * 2 * i) / rg.count + rg.rot + swirl + Math.sin(time * 1.5 + rIdx) * 0.035;
+            c.save();
+            c.rotate(ang);
+
+            const pGrad = c.createLinearGradient(8, 0, curLen, 0);
+            pGrad.addColorStop(0, botColor(0.38 + rIdx * 0.05, rg.part, 105 + rIdx * 22));
+            pGrad.addColorStop(0.7, botColor(0.88, rg.part, 185));
+            pGrad.addColorStop(1, botColor(1.0, 205, 250));
+
+            c.fillStyle = pGrad;
+            c.strokeStyle = botColor(1.0, 205, 255);
+            c.lineWidth = 1.6;
+
+            c.beginPath();
+            c.moveTo(8, 0);
+            c.quadraticCurveTo(curLen * 0.52, -curWid, curLen, 0);
+            c.quadraticCurveTo(curLen * 0.52, curWid, 8, 0);
+            c.closePath();
+            c.fill();
+            c.stroke();
+
+            c.restore();
+          }
+        }
+
+        c.fillStyle = botColor(1.0, 252, 110);
+        c.beginPath();
+        c.arc(0, 0, 12 * stages.bud, 0, Math.PI * 2);
+        c.fill();
+
+        c.restore();
+      }
+
+      // ==========================================================================
+      // 9. KEMBANG SEPATU (HIBISCUS) — Pilinan Kuncup Terbuka & Putik Menjulur
+      // ==========================================================================
+      function drawHibiscus(c, time, br, bloomFactor, stages) {
+        const stemPx = br.stemBend * 56 * stages.stem;
+        const head = drawCurvedStem(c, -12, 200, -4, -30, stemPx, 7.8, 5.8, 55, stages.stem);
+
+        if (stages.stem > 0.3) {
+          const l1 = evalStemPoint(0.32, -12, 200, -4, -30, stemPx);
+          drawVeinedLeaf(c, l1.x, l1.y, -2.5 + br.leafBend * 0.25, 88, 36, true, 90, clamp01(stages.leaf * 1.1));
+        }
+
+        if (stages.stem > 0.5) {
+          const l2 = evalStemPoint(0.54, -12, 200, -4, -30, stemPx);
+          drawVeinedLeaf(c, l2.x, l2.y, -0.45 + br.leafBend * 0.25, 92, 38, true, 90, clamp01((stages.leaf - 0.14) * 1.14));
+        }
+
+        if (stages.bud <= 0.02) return;
+
+        c.save();
+        c.translate(head.x, head.y);
+        // Pilinan kuncup tropis yang berputar terbuka saat mekar
+        const budTwist = (1 - clamp01(stages.unfurl)) * 0.72;
+        c.rotate(br.headBend * 0.32 * stages.unfurl - budTwist);
+
+        const pScaleW = 0.28 + 0.72 * stages.unfurl;
+        const pScaleH = 0.42 + 0.58 * stages.bud;
+
+        // 5 Kelopak Tropis Lebar Bertepi Bergelombang
+        for (let i = 0; i < 5; i++) {
+          const ang = (Math.PI * 2 * i) / 5 - 0.3 + Math.sin(time * 2.0 + i * 1.1) * 0.045;
+          c.save();
+          c.rotate(ang);
+          c.scale(bloomFactor * pScaleW, bloomFactor * pScaleH);
+
+          const pGrad = c.createRadialGradient(0, 0, 6, 0, -68, 98);
+          pGrad.addColorStop(0, botColor(0.34, 130, 100));
+          pGrad.addColorStop(0.55, botColor(0.86, 165, 185));
+          pGrad.addColorStop(1, botColor(1.0, 205, 245));
+
+          c.fillStyle = pGrad;
+          c.strokeStyle = botColor(1.0, 205, 250);
+          c.lineWidth = 2.0;
+
+          c.beginPath();
+          c.moveTo(0, 0);
+          c.bezierCurveTo(-50, -22, -66, -74, -34, -102);
+          c.quadraticCurveTo(-18, -116, 0, -106);
+          c.quadraticCurveTo(18, -116, 34, -102);
+          c.bezierCurveTo(66, -74, 50, -22, 0, 0);
+          c.closePath();
+          c.fill();
+          c.stroke();
+
+          c.strokeStyle = botColor(0.95, 205, 220);
+          c.lineWidth = 1.4;
+          for (const vx of [-22, -8, 8, 22]) {
+            c.beginPath();
+            c.moveTo(0, -10);
+            c.quadraticCurveTo(vx * 0.72, -52, vx * 1.32, -94);
+            c.stroke();
+          }
+
+          c.restore();
+        }
+
+        // Tangkai putik panjang menjulur keluar seiring mekarnya kelopak
+        const pistilGrow = easeOutBack(clamp01((stages.unfurlRaw - 0.15) / 0.85), 1.2);
+        if (pistilGrow > 0.05) {
+          const pistilSway = Math.sin(time * 2.4) * 9 + br.headBend * 14;
+          const tipX = 78 * pistilGrow;
+          const tipY = (-56 + pistilSway) * pistilGrow;
+
+          c.strokeStyle = botColor(0.98, 205, 245);
+          c.lineWidth = 5.0 * Math.min(1, pistilGrow * 1.4);
+          c.lineCap = 'round';
+          c.beginPath();
+          c.moveTo(0, 0);
+          c.quadraticCurveTo(38 * pistilGrow, (-28 + pistilSway * 0.5) * pistilGrow, tipX, tipY);
+          c.stroke();
+
+          for (let s = 0; s < 16; s++) {
+            const st = 0.5 + (s / 15) * 0.45;
+            const sx = st * tipX + (s % 2 === 0 ? 1 : -1) * 7.5 * pistilGrow;
+            const sy = st * tipY + ((s % 3) - 1) * 7.5 * pistilGrow;
+            c.fillStyle = botColor(1.0, 252, 245);
+            c.beginPath();
+            c.arc(sx, sy, 2.7 * Math.min(1, pistilGrow), 0, Math.PI * 2);
+            c.fill();
+          }
+
+          for (let k = 0; k < 5; k++) {
+            const ka = (Math.PI * 2 * k) / 5 + time * 0.4;
+            c.fillStyle = botColor(1.0, 252, 255);
+            c.beginPath();
+            c.arc(tipX + Math.cos(ka) * 6.5 * pistilGrow, tipY + Math.sin(ka) * 6.5 * pistilGrow, 3.2 * Math.min(1, pistilGrow), 0, Math.PI * 2);
+            c.fill();
+          }
+        }
+
+        c.restore();
+      }
+
+      // ==========================================================================
+      // 10. DANDELION — 96 Parasut Biji Mengembang dari Kuncup & Terbang
+      // ==========================================================================
+      function drawDandelion(c, time, br, bloomFactor, stages) {
+        const stemPx = br.stemBend * 68 * stages.stem;
+        const head = drawCurvedStem(c, -10, 200, -6, -42, stemPx, 6.8, 5.4, 55, stages.stem);
+
+        drawVeinedLeaf(c, -12, 194, -2.75 + br.leafBend * 0.18, 86, 22, true, 90, stages.leaf);
+        drawVeinedLeaf(c, -8, 194, -0.35 + br.leafBend * 0.18, 92, 23, true, 90, clamp01((stages.leaf - 0.1) * 1.12));
+
+        if (stages.bud <= 0.02) return;
+
+        c.save();
+        c.translate(head.x, head.y);
+
+        // Bola parasut mengembang dari kuncup rapat (0.22) ke bola penuh (1.0)
+        const puffOpen = clamp01(stages.unfurl);
+        const spokeCount = 96;
+        const sphereR = 96 * (0.94 + (bloomFactor - 1) * 0.4) * (0.22 + 0.78 * puffOpen);
+
+        for (let i = 0; i < spokeCount; i++) {
+          let growScale = 1.0;
+          if (i >= 4 && i <= 18 && puffOpen > 0.85) {
+            const regenPhase = (time * 0.24 + i * 0.08) % 1;
+            if (regenPhase < 0.35) continue;
+            growScale = Math.min(1, (regenPhase - 0.35) / 0.45);
+          }
+
+          const ang = (Math.PI * 2 * i) / spokeCount + Math.sin(time * 2.1 + i * 0.4) * 0.025;
+          const rLen = sphereR * growScale * (0.86 + (0.14 * ((i * 7) % 5)) / 4);
+          const tx = Math.cos(ang) * rLen;
+          const ty = Math.sin(ang) * rLen;
+
+          c.strokeStyle = botColor(0.68, 165, 175);
+          c.lineWidth = 1.3;
+          c.beginPath();
+          c.moveTo(0, 0);
+          c.lineTo(tx, ty);
+          c.stroke();
+
+          c.strokeStyle = botColor(0.98, 205, 245);
+          c.lineWidth = 1.5;
+          const fanSpread = 0.25 + 0.75 * puffOpen;
+          for (const fan of [-0.5 * fanSpread, 0, 0.5 * fanSpread]) {
+            c.beginPath();
+            c.moveTo(tx, ty);
+            c.lineTo(tx + Math.cos(ang + fan) * 11 * growScale * puffOpen, ty + Math.sin(ang + fan) * 11 * growScale * puffOpen);
+            c.stroke();
+          }
+        }
+
+        c.fillStyle = botColor(0.75, 55, 100);
+        c.beginPath();
+        c.arc(0, 0, 15 * stages.bud, 0, Math.PI * 2);
+        c.fill();
+
+        c.fillStyle = botColor(1.0, 252, 115);
+        c.beginPath();
+        c.arc(0, 0, 9 * stages.bud, 0, Math.PI * 2);
+        c.fill();
+
+        // Biji-biji parasut dandelion yang terlepas setelah bola mengembang penuh
+        if (stages.unfurlRaw > 0.55) {
+          const flyFade = clamp01((stages.unfurlRaw - 0.55) / 0.45);
+          const flyingTotal = Math.round(10 * state.bloomIntensity * flyFade);
+          for (let f = 0; f < flyingTotal; f++) {
+            const cycle = (time * 0.24 + f * 0.1) % 1;
+            const fx = 55 + cycle * (145 + br.headBend * 52) + Math.sin(time * 2.3 + f * 1.9) * 15;
+            const fy = -45 - cycle * 120 + Math.cos(time * 1.8 + f * 1.4) * 16;
+            const fRot = -0.45 + Math.sin(time * 2.6 + f) * 0.28;
+
+            c.save();
+            c.translate(fx, fy);
+            c.rotate(fRot);
+
+            c.fillStyle = botColor(1.0 * flyFade, 252, 250);
+            c.beginPath();
+            c.arc(0, 8, 2.3, 0, Math.PI * 2);
+            c.fill();
+
+            c.strokeStyle = botColor(0.96 * flyFade, 205, 245);
+            c.lineWidth = 1.5;
+            c.beginPath();
+            c.moveTo(0, 8);
+            c.lineTo(0, -6);
+            c.moveTo(0, -6);
+            c.lineTo(-9, -15);
+            c.moveTo(0, -6);
+            c.lineTo(0, -17);
+            c.moveTo(0, -6);
+            c.lineTo(9, -15);
+            c.stroke();
+
+            c.restore();
+          }
+        }
+
+        c.restore();
+      }
+
+      // ============================================================================
+      // SIMULASI ANGIN FASE BERLAPIS, TRANSISI MEKAR, PERSPEKTIF 3D & JEJAK ASCII
+      // ============================================================================
+      function updateSimulation(dt) {
+        const effDt = Math.min(dt, 0.05);
+        state.time += effDt * state.windSpeed;
+
+        // Perbarui progres Animasi Mekar Multi-Tahap saat berganti spesies / Mekar Ulang
+        if (state.bloomActive) {
+          const speedFactor = 0.42 + state.windSpeed * 0.12;
+          state.bloomProgress += effDt * speedFactor;
+
+          // Tukar spesies bunga tepat di puncak kontraksi benih kosmik (progress >= 0.15)
+          if (state.bloomHasContractPhase && !state.flowerSwapped && state.bloomProgress >= 0.15) {
+            state.flower = state.pendingFlower || state.flower;
+            state.flowerSwapped = true;
+
+            // Kilau lembut saat benih kosmik mulai tumbuh menjadi batang & kuncup baru
+            for (let i = 0; i < 24; i++) {
+              const ang = (Math.PI * 2 * i) / 24 + Math.random() * 0.2;
+              const spd = 65 + Math.random() * 145;
+              burstSparks.push({
+                x: state.width * 0.5,
+                y: state.height * 0.54,
+                vx: Math.cos(ang) * spd,
+                vy: Math.sin(ang) * spd - 35,
+                life: 0,
+                maxLife: 0.45 + Math.random() * 0.35,
+                size: 1.0 + Math.random() * 1.3,
+                color: STAR_COLORS[i % STAR_COLORS.length],
+              });
+            }
+          }
+
+          // Semburan serbuk sari halus selama fase mekarnya kelopak (0.40 - 0.95)
+          if (state.bloomProgress > 0.38 && state.bloomProgress < 0.96) {
+            state.pollenBurstAccumulator += effDt * 24 * state.bloomIntensity;
+            while (state.pollenBurstAccumulator >= 1) {
+              state.pollenBurstAccumulator -= 1;
+              pollenParticles.push({
+                x: state.width * 0.5 + (Math.random() - 0.5) * 160,
+                y: state.height * 0.46 + (Math.random() - 0.5) * 90,
+                vy: -(22 + Math.random() * 34),
+                phase: Math.random() * Math.PI * 2,
+                size: 1.1 + Math.random() * 1.4,
+                alpha: 0.85,
+              });
+              if (pollenParticles.length > 115) pollenParticles.shift();
+            }
+          }
+
+          if (state.bloomProgress >= 1.0) {
+            state.bloomProgress = 1.0;
+            state.bloomActive = false;
+            state.flowerSwapped = true;
+          }
+        }
+
+        const idleSec = performance.now() / 1000 - pointer.lastMoveTime;
+        if (idleSec > 1.5) {
+          pointer.active = false;
+        }
+
+        // Gelombang angin otonom dengan rambatan fase realistis:
+        // Batang melengkung lebih dulu -> diikuti daun -> lalu mahkota bunga!
+        const w1 = Math.sin(state.time * 1.25) * 0.28 + Math.sin(state.time * 2.35 + 0.9) * 0.1;
+        const wLeaf = Math.sin(state.time * 1.25 - 0.45) * 0.31 + Math.sin(state.time * 2.35 + 0.45) * 0.12;
+        const wHead = Math.sin(state.time * 1.25 - 0.85) * 0.34 + Math.sin(state.time * 2.35) * 0.14;
+
+        breeze.gustImpulse *= Math.pow(0.08, effDt);
+        breeze.bloomSurge *= Math.pow(0.22, effDt);
+
+        const targetStem = Math.max(-0.95, Math.min(0.95, w1 + breeze.gustImpulse));
+        const targetLeaf = Math.max(-0.95, Math.min(0.95, wLeaf + breeze.gustImpulse * 1.08));
+        const targetHead = Math.max(-0.95, Math.min(0.95, wHead + breeze.gustImpulse * 1.15));
+
+        breeze.stemBend += (targetStem - breeze.stemBend) * Math.min(1, effDt * 6.0);
+        breeze.leafBend += (targetLeaf - breeze.leafBend) * Math.min(1, effDt * 5.2);
+        breeze.headBend += (targetHead - breeze.headBend) * Math.min(1, effDt * 4.5);
+
+        // Kemiringan perspektif 3D halus mengikuti kursor/sentuhan atau gerak otonom
+        const targetTiltX = pointer.active ? pointer.normX : Math.sin(state.time * 0.65) * 0.22;
+        const targetTiltY = pointer.active ? pointer.normY : Math.cos(state.time * 0.55) * 0.18;
+        pointer.smoothTiltX += (targetTiltX - pointer.smoothTiltX) * Math.min(1, effDt * 4.5);
+        pointer.smoothTiltY += (targetTiltY - pointer.smoothTiltY) * Math.min(1, effDt * 4.5);
+
+        // Partikel serbuk sari emas yang naik dari bunga
+        const activePollenLimit = Math.round(65 * state.bloomIntensity);
+        for (let i = 0; i < pollenParticles.length; i++) {
+          const p = pollenParticles[i];
+          p.y += p.vy * effDt * (0.7 + state.windSpeed * 0.35);
+          p.x += (Math.sin(state.time * 1.5 + p.phase) * 18 + breeze.headBend * 38) * effDt;
+
+          if (p.y < state.height * 0.08) {
+            p.y = state.height * (0.52 + Math.random() * 0.25);
+            p.x = state.width * 0.5 + (Math.random() - 0.5) * 260;
+          }
+        }
+        while (pollenParticles.length < activePollenLimit) {
+          pollenParticles.push({
+            x: state.width * 0.5 + (Math.random() - 0.5) * 260,
+            y: state.height * (0.2 + Math.random() * 0.6),
+            vy: -(12 + Math.random() * 22),
+            phase: Math.random() * Math.PI * 2,
+            size: 0.9 + Math.random() * 1.5,
+            alpha: 0.35 + Math.random() * 0.6,
+          });
+        }
+
+        // Jejak aliran angin karakter ASCII (~ * . -) saat kursor bergerak
+        for (let i = windAsciiTrail.length - 1; i >= 0; i--) {
+          const wa = windAsciiTrail[i];
+          wa.x += wa.vx * effDt;
+          wa.y += wa.vy * effDt;
+          wa.life += effDt;
+          if (wa.life >= wa.maxLife) windAsciiTrail.splice(i, 1);
+        }
+
+        // Fisika pegas untuk karakter yang terpental pusaran klik
+        if (displacedCells.size > 0) {
+          const springK = 38;
+          const damping = Math.pow(0.045, effDt);
+          for (const [key, cell] of displacedCells.entries()) {
+            cell.vx += -cell.dx * springK * effDt;
+            cell.vy += -cell.dy * springK * effDt;
+            cell.vx *= damping;
+            cell.vy *= damping;
+            cell.dx += cell.vx * effDt;
+            cell.dy += cell.vy * effDt;
+            cell.heat = Math.max(0, cell.heat - effDt * 1.4);
+
+            if (
+              Math.abs(cell.dx) < 0.25 &&
+              Math.abs(cell.dy) < 0.25 &&
+              Math.abs(cell.vx) < 1.5 &&
+              Math.abs(cell.vy) < 1.5 &&
+              cell.heat <= 0.01
+            ) {
+              displacedCells.delete(key);
+            }
+          }
+        }
+
+        if (Math.random() < effDt * 0.32 && shootingStars.length < 2) {
+          spawnShootingStar();
+        }
+        for (let i = shootingStars.length - 1; i >= 0; i--) {
+          const ss = shootingStars[i];
+          ss.x += ss.vx * effDt;
+          ss.y += ss.vy * effDt;
+          ss.life += effDt;
+          if (ss.life >= ss.maxLife) shootingStars.splice(i, 1);
+        }
+
+        for (let i = burstSparks.length - 1; i >= 0; i--) {
+          const sp = burstSparks[i];
+          sp.x += sp.vx * effDt;
+          sp.y += sp.vy * effDt;
+          sp.vx *= Math.pow(0.12, effDt);
+          sp.vy *= Math.pow(0.12, effDt);
+          sp.life += effDt;
+          if (sp.life >= sp.maxLife) burstSparks.splice(i, 1);
+        }
+
+        for (let i = shockwaves.length - 1; i >= 0; i--) {
+          const sw = shockwaves[i];
+          sw.radius += 520 * effDt;
+          sw.alpha = Math.max(0, 0.8 * (1 - sw.radius / sw.maxRadius));
+          if (sw.radius >= sw.maxRadius) shockwaves.splice(i, 1);
+        }
+      }
+
+      // ============================================================================
+      // RENDERING GALAKSI, JEJAK ANGIN ASCII & 7.000 - 11.000+ KARAKTER BOTANI
+      // ============================================================================
+      const colorBuckets = new Map();
+
+      function render() {
+        if (nebulaBackdrop) {
+          ctx.drawImage(nebulaBackdrop, 0, 0);
+        } else {
+          ctx.fillStyle = '#000000';
+          ctx.fillRect(0, 0, state.width, state.height);
+        }
+
+        // 1. Partikel bintang mikro berkelap-kelip parallax
+        const pxBase = pointer.smoothTiltX * 22;
+        const pyBase = pointer.smoothTiltY * 22;
+
+        for (let i = 0; i < stars.length; i++) {
+          const st = stars[i];
+          const pFactor = st.layer === 0 ? 0.25 : st.layer === 1 ? 0.62 : 1.05;
+          let sx = (st.x - pxBase * pFactor) % state.width;
+          let sy = (st.y - pyBase * pFactor) % state.height;
+          if (sx < 0) sx += state.width;
+          if (sy < 0) sy += state.height;
+
+          const twinkle = 0.55 + 0.45 * Math.sin(state.time * st.twinkleSpeed + st.twinklePhase);
+          const alpha = st.baseAlpha * twinkle;
+
+          ctx.fillStyle = `rgba(${st.color},${alpha.toFixed(2)})`;
+          ctx.beginPath();
+          ctx.arc(sx, sy, st.size, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (st.crossSparkle && twinkle > 0.85) {
+            const arm = st.size * 2.5;
+            ctx.strokeStyle = `rgba(${st.color},${(alpha * 0.52).toFixed(2)})`;
+            ctx.lineWidth = 0.65;
+            ctx.beginPath();
+            ctx.moveTo(sx - arm, sy);
+            ctx.lineTo(sx + arm, sy);
+            ctx.moveTo(sx, sy - arm);
+            ctx.lineTo(sx, sy + arm);
+            ctx.stroke();
+          }
+        }
+
+        // 2. Bintang jatuh
+        for (let i = 0; i < shootingStars.length; i++) {
+          const ss = shootingStars[i];
+          const prog = ss.life / ss.maxLife;
+          const alpha = Math.sin(prog * Math.PI) * 0.74;
+          const spd = Math.hypot(ss.vx, ss.vy);
+          const tx = ss.x - (ss.vx / spd) * ss.len;
+          const ty = ss.y - (ss.vy / spd) * ss.len;
+
+          const grad = ctx.createLinearGradient(ss.x, ss.y, tx, ty);
+          grad.addColorStop(0, `rgba(224,242,254,${alpha.toFixed(2)})`);
+          grad.addColorStop(1, 'rgba(224,242,254,0)');
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 1.25;
+          ctx.beginPath();
+          ctx.moveTo(ss.x, ss.y);
+          ctx.lineTo(tx, ty);
+          ctx.stroke();
+        }
+
+        // 3. Partikel serbuk sari emas yang naik dari bunga
+        const visiblePollen = Math.min(pollenParticles.length, Math.round(65 * state.bloomIntensity));
+        for (let i = 0; i < visiblePollen; i++) {
+          const p = pollenParticles[i];
+          const pulse = 0.5 + 0.5 * Math.sin(state.time * 2.8 + p.phase);
+          ctx.fillStyle = `rgba(253, 230, 138, ${(p.alpha * pulse).toFixed(2)})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 4. Jejak aliran angin karakter ASCII (~ * . -) saat kursor digerakkan
+        if (windAsciiTrail.length > 0) {
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.font = '700 10px "JetBrains Mono", monospace';
+          for (let i = 0; i < windAsciiTrail.length; i++) {
+            const wa = windAsciiTrail[i];
+            const alpha = (1 - wa.life / wa.maxLife) * 0.85;
+            ctx.fillStyle = `rgba(110, 231, 183, ${alpha.toFixed(2)})`;
+            ctx.fillText(wa.char, wa.x, wa.y);
+          }
+        }
+
+        // 5. Gelombang kejut & percikan pusaran klik
+        for (let i = 0; i < shockwaves.length; i++) {
+          const sw = shockwaves[i];
+          ctx.strokeStyle = `rgba(52,211,153,${sw.alpha.toFixed(2)})`;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        for (let i = 0; i < burstSparks.length; i++) {
+          const sp = burstSparks[i];
+          const alpha = 1 - sp.life / sp.maxLife;
+          ctx.fillStyle = `rgba(${sp.color},${alpha.toFixed(2)})`;
+          ctx.beginPath();
+          ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 6. Render Anatomi Botani Multi-Zona -> 7.000 - 11.000+ Karakter ASCII Mikro
+        renderUltraDenseAsciiFlower();
+
+        // 7. Spora kosmik latar depan (paralaks 3D lebih cepat dari bunga)
+        for (let i = 0; i < foregroundSpores.length; i++) {
+          const sp = foregroundSpores[i];
+          let sx = (sp.x - pxBase * 1.85 + Math.sin(state.time * 0.9 + sp.phase) * 14) % state.width;
+          let sy = (sp.y - pyBase * 1.85 + Math.cos(state.time * 0.8 + sp.phase) * 14) % state.height;
+          if (sx < 0) sx += state.width;
+          if (sy < 0) sy += state.height;
+          ctx.fillStyle = `rgba(244, 244, 245, ${sp.alpha.toFixed(2)})`;
+          ctx.beginPath();
+          ctx.arc(sx, sy, sp.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function renderUltraDenseAsciiFlower() {
+        const { flowerScale, spacing, fontSize } = getResponsiveMetrics();
+        const stages = getBloomStages();
+
+        const cols = Math.max(1, Math.ceil(state.width / spacing));
+        const rows = Math.max(1, Math.ceil(state.height / spacing));
+
+        if (offCanvas.width !== cols || offCanvas.height !== rows) {
+          offCanvas.width = cols;
+          offCanvas.height = rows;
+        }
+
+        offCtx.setTransform(1, 0, 0, 1, 0, 0);
+        offCtx.clearRect(0, 0, cols, rows);
+
+        // Siklus mekar organik (dipengaruhi slider Intensitas Mekar & pemicu Hembusan)
+        const breathAmp = 0.055 * state.bloomIntensity + breeze.bloomSurge * 0.12;
+        const bloomFactor = 1.0 + Math.sin(state.time * 1.55) * breathAmp + breeze.bloomSurge * 0.06;
+
+        // Kontraksi benih kosmik saat berpindah spesies (0.00 -> 0.16)
+        const contractScale = stages.contract > 0 ? 1 - stages.contract * 0.72 : 1.0;
+
+        // Perspektif 3D halus saat kursor/sentuhan bergerak
+        const perspScaleX = flowerScale * contractScale * (1 - Math.abs(pointer.smoothTiltX) * 0.065);
+        const perspScaleY = flowerScale * contractScale * (1 - Math.abs(pointer.smoothTiltY) * 0.055);
+        const centerX = state.width * 0.5 + pointer.smoothTiltX * 14;
+        const centerY = state.height * 0.52 + pointer.smoothTiltY * 12 + stages.contract * 34 * flowerScale;
+
+        offCtx.setTransform(1 / spacing, 0, 0, 1 / spacing, 0, 0);
+        offCtx.save();
+        offCtx.translate(centerX, centerY);
+        offCtx.transform(1, pointer.smoothTiltY * 0.06, pointer.smoothTiltX * 0.08, 1, 0, 0);
+        offCtx.scale(perspScaleX, perspScaleY);
+
+        switch (state.flower) {
+          case 'rose':
+            drawRose(offCtx, state.time, breeze, bloomFactor, stages);
+            break;
+          case 'sunflower':
+            drawSunflower(offCtx, state.time, breeze, bloomFactor, stages);
+            break;
+          case 'sakura':
+            drawSakura(offCtx, state.time, breeze, bloomFactor, stages);
+            break;
+          case 'lotus':
+            drawLotus(offCtx, state.time, breeze, bloomFactor, stages);
+            break;
+          case 'tulip':
+            drawTulip(offCtx, state.time, breeze, bloomFactor, stages);
+            break;
+          case 'orchid':
+            drawOrchid(offCtx, state.time, breeze, bloomFactor, stages);
+            break;
+          case 'lavender':
+            drawLavender(offCtx, state.time, breeze, bloomFactor, stages);
+            break;
+          case 'dahlia':
+            drawDahlia(offCtx, state.time, breeze, bloomFactor, stages);
+            break;
+          case 'hibiscus':
+            drawHibiscus(offCtx, state.time, breeze, bloomFactor, stages);
+            break;
+          case 'dandelion':
+          default:
+            drawDandelion(offCtx, state.time, breeze, bloomFactor, stages);
+            break;
+        }
+
+        offCtx.restore();
+
+        const padX = 250 * flowerScale;
+        const padY = 260 * flowerScale;
+        const minCol = Math.max(0, Math.floor((centerX - padX) / spacing));
+        const maxCol = Math.min(cols - 1, Math.ceil((centerX + padX) / spacing));
+        const minRow = Math.max(0, Math.floor((centerY - padY) / spacing));
+        const maxRow = Math.min(rows - 1, Math.ceil((centerY + padY) / spacing));
+
+        const scanW = maxCol - minCol + 1;
+        const scanH = maxRow - minRow + 1;
+        if (scanW <= 0 || scanH <= 0) return;
+
+        const imgData = offCtx.getImageData(minCol, minRow, scanW, scanH).data;
+        const activePalette = PALETTES[state.palette] || PALETTES.alami;
+        const gustRadius = 115;
+
+        // Fase gelombang cahaya bioluminesensi: selama transisi mekar, merambat dari pangkal batang (0) -> kelopak (1)
+        const bioWavePhase = stages.bioSweep >= 0 ? stages.bioSweep : (state.time * 0.55) % 1;
+
+        for (const arr of colorBuckets.values()) {
+          arr.length = 0;
+        }
+
+        let totalChars = 0;
+
+        for (let r = 0; r < scanH; r++) {
+          const row = minRow + r;
+          const baseWy = row * spacing + spacing * 0.5;
+          const rowOffset = r * scanW * 4;
+
+          for (let c = 0; c < scanW; c++) {
+            const idx = rowOffset + c * 4;
+            const alpha = imgData[idx + 3];
+            if (alpha < 35) continue;
+
+            totalChars++;
+            const col = minCol + c;
+            const baseWx = col * spacing + spacing * 0.5;
+
+            const lum = (imgData[idx] / 255) * (alpha / 255);
+            const partId = imgData[idx + 1];
+            const radialPos = imgData[idx + 2] / 255;
+
+            // Hitung denyut cahaya bioluminesensi yang merambat sepanjang radialPos
+            const waveDist = Math.abs(((radialPos - bioWavePhase + 1.5) % 1) - 0.5);
+            const waveWidth = stages.active ? 0.22 : 0.14;
+            const waveAmp = stages.active
+              ? 0.34 * state.bloomIntensity
+              : 0.18 * state.bloomIntensity + breeze.bloomSurge * 0.25;
+            const bioPulse = waveDist < waveWidth ? (1 - waveDist / waveWidth) * waveAmp : 0;
+
+            const disp = displacedCells.get(`${col},${row}`);
+            let drawX = disp ? baseWx + disp.dx : baseWx;
+            let drawY = disp ? baseWy + disp.dy : baseWy;
+
+            // Getaran kelopak lokal saat kursor menyentuh bunga
+            const dxPtr = drawX - pointer.x;
+            const dyPtr = drawY - pointer.y;
+            const distPtr = Math.hypot(dxPtr, dyPtr);
+            let flutterBoost = 0;
+
+            if (pointer.active && distPtr < gustRadius && distPtr > 0.5) {
+              const normDist = 1 - distPtr / gustRadius;
+              const wave = Math.sin(distPtr * 0.16 - state.time * 10.5) * 4.2 * normDist;
+              drawX += (dxPtr / distPtr) * wave + pointer.vx * 0.012 * normDist;
+              drawY += (dyPtr / distPtr) * wave + pointer.vy * 0.012 * normDist;
+              flutterBoost = normDist;
+            }
+
+            const effLum = Math.min(
+              1,
+              lum + bioPulse + stages.contract * 0.32 + flutterBoost * 0.24 + (disp ? disp.heat * 0.35 : 0)
+            );
+
+            const ch = pickCharacter(effLum, partId, col, row);
+
+            let colorStr;
+            if ((disp && disp.heat > 0.35) || stages.contract > 0.55 || (stages.active && bioPulse > 0.26)) {
+              colorStr = '#fef9c3';
+            } else if (flutterBoost > 0.45) {
+              colorStr = '#ecfdf5';
+            } else {
+              colorStr = activePalette.sample(effLum, radialPos, partId, state.time, state.flower);
+            }
+
+            let bucket = colorBuckets.get(colorStr);
+            if (!bucket) {
+              bucket = [];
+              colorBuckets.set(colorStr, bucket);
+            }
+            bucket.push(ch, drawX, drawY);
+          }
+        }
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = `700 ${fontSize.toFixed(1)}px "JetBrains Mono", monospace`;
+
+        for (const [colorStr, items] of colorBuckets.entries()) {
+          if (items.length === 0) continue;
+          ctx.fillStyle = colorStr;
+          for (let i = 0; i < items.length; i += 3) {
+            ctx.fillText(items[i], items[i + 1], items[i + 2]);
+          }
+        }
+
+        if (Math.abs(totalChars - state.lastRenderedChars) > 45) {
+          state.lastRenderedChars = totalChars;
+          charCountInfo.textContent = `${totalChars.toLocaleString('id-ID')} karakter aktif`;
+        }
+      }
+
+      // ============================================================================
+      // LOOP ANIMASI UTAMA
+      // ============================================================================
+      function animate(now) {
+        const dt = (now - state.lastFrameTime) / 1000;
+        state.lastFrameTime = now;
+
+        updateSimulation(dt);
+        render();
+
+        requestAnimationFrame(animate);
+      }
+
+      // ============================================================================
+      // EVENT HANDLER & PANEL KONTROL TERPISAH
+      // ============================================================================
+      function handleResize() {
+        state.width = window.innerWidth;
+        state.height = window.innerHeight;
+        state.dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        canvas.width = Math.floor(state.width * state.dpr);
+        canvas.height = Math.floor(state.height * state.dpr);
+        ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+
+        initGalaxy();
+      }
+      window.addEventListener('resize', handleResize);
+
+      const WIND_TRAIL_CHARS = ['~', '*', '.', '-', '✿', '·'];
+
+      function recordPointerMove(cx, cy) {
+        const now = performance.now() / 1000;
+        const dx = cx - pointer.prevX;
+        const dy = cy - pointer.prevY;
+
+        pointer.vx = dx * 24;
+        pointer.vy = dy * 24;
+        pointer.prevX = cx;
+        pointer.prevY = cy;
+        pointer.x = cx;
+        pointer.y = cy;
+        pointer.normX = (cx / Math.max(1, state.width)) * 2 - 1;
+        pointer.normY = (cy / Math.max(1, state.height)) * 2 - 1;
+        pointer.active = true;
+        pointer.lastMoveTime = now;
+
+        breeze.gustImpulse = Math.max(
+          -0.88,
+          Math.min(0.88, breeze.gustImpulse + (dx / Math.max(200, state.width)) * 3.0)
+        );
+
+        // Jejak aliran angin karakter ASCII (~ * . -)
+        if (Math.hypot(dx, dy) > 2 && windAsciiTrail.length < 75) {
+          windAsciiTrail.push({
+            x: cx + (Math.random() - 0.5) * 14,
+            y: cy + (Math.random() - 0.5) * 14,
+            vx: dx * 0.25 + (Math.random() - 0.5) * 24,
+            vy: dy * 0.25 - 12 - Math.random() * 16,
+            char: WIND_TRAIL_CHARS[Math.floor(Math.random() * WIND_TRAIL_CHARS.length)],
+            life: 0,
+            maxLife: 0.48 + Math.random() * 0.35,
+          });
+        }
+      }
+
+      canvas.addEventListener('pointermove', (e) => {
+        recordPointerMove(e.clientX, e.clientY);
+      });
+
+      canvas.addEventListener('pointerdown', (e) => {
+        recordPointerMove(e.clientX, e.clientY);
+        triggerCosmicVortex(e.clientX, e.clientY, true);
+      });
+
+      canvas.addEventListener(
+        'touchmove',
+        (e) => {
+          if (e.touches.length > 0) {
+            const t = e.touches[0];
+            recordPointerMove(t.clientX, t.clientY);
+          }
+        },
+        { passive: true }
+      );
+
+      // Buka/Tutup Laci Panel Kontrol Terpisah
+      function setDrawerState(open) {
+        state.drawerOpen = open;
+        toggleDrawerBtn.setAttribute('aria-expanded', String(open));
+        if (open) {
+          controlDrawer.classList.remove('opacity-0', 'translate-x-6', 'scale-95', 'pointer-events-none');
+          controlDrawer.classList.add('opacity-100', 'translate-x-0', 'scale-100', 'pointer-events-auto');
+          gearIcon.classList.add('rotate-90');
+        } else {
+          controlDrawer.classList.add('opacity-0', 'translate-x-6', 'scale-95', 'pointer-events-none');
+          controlDrawer.classList.remove('opacity-100', 'translate-x-0', 'scale-100', 'pointer-events-auto');
+          gearIcon.classList.remove('rotate-90');
+        }
+      }
+
+      toggleDrawerBtn.addEventListener('click', () => setDrawerState(!state.drawerOpen));
+      closeDrawerBtn.addEventListener('click', () => setDrawerState(false));
+
+      // Tombol Pemicu "🌸 Mekar Ulang" (mengulang animasi mekar botani multi-tahap)
+      replayBloomBtn.addEventListener('click', () => {
+        startBloomTransition(state.flower, false);
+      });
+
+      // Tombol Pemicu "✨ Hembusan"
+      gustBloomBtn.addEventListener('click', () => {
+        triggerCosmicVortex(state.width * 0.5, state.height * 0.48, true);
+      });
+
+      // Mode Bersih
+      let toastTimer = null;
+
+      function setCleanMode(enabled) {
+        state.cleanMode = enabled;
+        if (enabled) {
+          setDrawerState(false);
+          floatingTriggerWrap.classList.add('opacity-0', 'pointer-events-none', '-translate-y-3');
+          cleanHintToast.classList.remove('opacity-0');
+          if (toastTimer) clearTimeout(toastTimer);
+          toastTimer = setTimeout(() => {
+            cleanHintToast.classList.add('opacity-0');
+          }, 2600);
+        } else {
+          floatingTriggerWrap.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-3');
+          cleanHintToast.classList.add('opacity-0');
+        }
+      }
+
+      cleanModeBtn.addEventListener('click', () => {
+        setCleanMode(true);
+      });
+
+      canvas.addEventListener('dblclick', () => {
+        if (state.cleanMode) setCleanMode(false);
+      });
+
+      let lastTapTime = 0;
+      let lastTapX = 0;
+      let lastTapY = 0;
+
+      canvas.addEventListener(
+        'touchend',
+        (e) => {
+          if (!state.cleanMode) return;
+          const now = performance.now();
+          const touch = e.changedTouches[0];
+          if (!touch) return;
+          const dist = Math.hypot(touch.clientX - lastTapX, touch.clientY - lastTapY);
+          if (now - lastTapTime < 340 && dist < 50) {
+            setCleanMode(false);
+            lastTapTime = 0;
+          } else {
+            lastTapTime = now;
+            lastTapX = touch.clientX;
+            lastTapY = touch.clientY;
+          }
+        },
+        { passive: true }
+      );
+
+      window.addEventListener('keydown', (e) => {
+        if (document.activeElement === customCharsInput) return;
+        if (e.key === 'h' || e.key === 'H' || (e.key === 'Escape' && state.cleanMode)) {
+          setCleanMode(!state.cleanMode);
+        }
+      });
+
+      // Pemilih 10 Jenis Bunga
+      function refreshFlowerButtons(displayKey = state.flower) {
+        flowerBtns.forEach((btn) => {
+          const active = btn.dataset.flower === displayKey;
+          if (active) {
+            btn.className =
+              'flower-btn flex items-center gap-2 px-2.5 py-2 rounded-2xl border border-emerald-400/70 bg-gradient-to-r from-emerald-500/25 to-pink-500/20 text-white shadow-[0_0_16px_rgba(52,211,153,0.22)] text-[11px] font-medium transition-all duration-200 cursor-pointer';
+          } else {
+            btn.className =
+              'flower-btn flex items-center gap-2 px-2.5 py-2 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.09] text-slate-300 text-[11px] font-medium transition-all duration-200 cursor-pointer';
+          }
+        });
+        activeFlowerBadge.textContent = FLOWER_NAMES[displayKey] || 'Mawar';
+      }
+
+      flowerBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const chosen = btn.dataset.flower;
+          refreshFlowerButtons(chosen);
+          // Jika berganti ke bunga berbeda, jalankan kontraksi benih -> tumbuh batang -> mekar penuh;
+          // jika menekan bunga yang sama, ulangi animasi mekar dari kuncup
+          startBloomTransition(chosen, chosen !== state.flower);
+        });
+      });
+
+      paletteSelect.addEventListener('change', (e) => {
+        state.palette = e.target.value;
+        const pal = PALETTES[state.palette];
+        if (pal && pal.dots) {
+          paletteDots.innerHTML = pal.dots
+            .map((hex) => `<span class="w-2 h-2 rounded-full" style="background:${hex}"></span>`)
+            .join('');
+        }
+      });
+
+      charsetSelect.addEventListener('change', (e) => {
+        state.charsetMode = e.target.value;
+        if (state.charsetMode === 'custom') {
+          customCharsInput.classList.remove('hidden');
+          customCharsInput.focus();
+        } else {
+          customCharsInput.classList.add('hidden');
+        }
+      });
+
+      customCharsInput.addEventListener('input', (e) => {
+        state.customChars = e.target.value;
+      });
+
+      densitySlider.addEventListener('input', (e) => {
+        state.densityLevel = parseInt(e.target.value, 10);
+        const preset = DENSITY_LEVELS[state.densityLevel] || DENSITY_LEVELS[3];
+        densityLabel.textContent = preset.label;
+      });
+
+      windSlider.addEventListener('input', (e) => {
+        state.windSpeed = parseFloat(e.target.value);
+        windLabel.textContent = `${state.windSpeed.toFixed(1)}x`;
+      });
+
+      bloomIntensitySlider.addEventListener('input', (e) => {
+        state.bloomIntensity = parseFloat(e.target.value);
+        bloomIntensityLabel.textContent = `${state.bloomIntensity.toFixed(1)}x`;
+      });
+
+      window.onload = function () {
+        refreshFlowerButtons(state.flower);
+        handleResize();
+        // Jalankan animasi mekar pembuka saat halaman pertama kali dibuka
+        startBloomTransition(state.flower, false);
+        requestAnimationFrame(animate);
+      };
+    })();
+  </script>
+</body>
+</html>
